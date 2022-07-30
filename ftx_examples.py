@@ -1,4 +1,4 @@
-from ftx import FTX
+from hft_api.ftx import FTX
 
 ftx = FTX('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
 

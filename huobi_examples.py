@@ -1,4 +1,4 @@
-from huobi import Huobi
+from hft_api.huobi import Huobi
 
 huobi = Huobi('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
 
