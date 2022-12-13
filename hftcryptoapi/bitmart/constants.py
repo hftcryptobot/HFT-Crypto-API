@@ -139,6 +139,18 @@ class ServiceStatus(int, Enum):
     COMPLETED = 2
 
 @unique
+class TimeFrame(int, Enum):
+    tf_1m = 1
+    tf_5m = 5
+    tf_15m = 15
+    tf_30m = 30
+    tf_1h = 60
+    tf_2h = 120
+    tf_4h = 240
+    tf_1d = 60*24
+    tf_1w = 60*24*7
+
+@unique
 class Market(str, Enum):
     SPOT = "spot"
     FUTURES = "futures"
@@ -265,3 +277,8 @@ class BtFuturesSocketDepthChannels(str, Enum):
     DEPTH_CHANNEL_5LEVEL = "futures/depth5"
     DEPTH_CHANNEL_20LEVEL = "futures/dept20"
     DEPTH_CHANNEL_50LEVEL = "futures/depth50"
+
+
+BtFuturesTickerChannel = "futures/ticker"
+BtFuturesTPrivatePositionChannel = "futures/position"
+BtFuturesTPrivateAssetChannel = "futures/asset"

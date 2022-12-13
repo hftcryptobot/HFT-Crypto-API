@@ -1,8 +1,9 @@
-import json 
+import json
 from .constants import *
 from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import Any, Optional, List, Union
+from .bitmart_exceptions import *
 
 class BitmartService():
     def __init__(self, title, service_type, status, start_time, end_time):
@@ -14,23 +15,27 @@ class BitmartService():
             self.status = ServiceStatus.WORKING
         elif int(status) == 2:
             self.status = ServiceStatus.COMPLETED
-        self.start_time = datetime.datetime.fromtimestamp(start_time)
-        self.end_time = datetime.datetime.fromtimestamp(end_time)
+        self.start_time = datetime.fromtimestamp(start_time)
+        self.end_time = datetime.fromtimestamp(end_time)
 
-class BitmartOrder(BaseModel, validate_assignment=True):
 
+class BitmartOrder(object):
     """
     Represents a request object for buy/sell command.
     Attributes:
     """
 
-
-
-    def __init__(self, market, symbol:str, side:str, size:str, price:float, order_type=OrderType.LIMIT, leverage=1,
-                 open_type=OrderOpenType.ISOLATED, client_order_id="", order_id="", create_time="0"):
+    def __init__(self, symbol: str, side: Union[FuturesSide, SpotSide], size: float, price: float, market: Market,
+                 order_type: OrderType = OrderType.LIMIT,
+                 leverage: int = 1,
+                 open_type=OrderOpenType.ISOLATED, client_order_id: Optional[str] = "", order_id: Optional[str] = "",
+                 create_time: int = 0):
+        super().__init__()
         self.symbol = symbol
         self.side = side
-        if create_time != 0: self.create_time = datetime.datetime.fromtimestamp(create_time)
+        if create_time != 0:
+            self.create_time = datetime.fromtimestamp(create_time)
+
         self.order_type = order_type
         self.price = price
         self.client_order_id = client_order_id
@@ -43,29 +48,29 @@ class BitmartOrder(BaseModel, validate_assignment=True):
         self.order_mode = OrderMode.SPOT
         self.update_time = None
         self.unfilled_volume = None
-        
 
         if market == Market.FUTURES:
             if side == SpotSide.BUY or side == SpotSide.SELL:
-                return "Wrong side for futures market"
-            
+                raise RequestException("Wrong side for futures market")
+
             self.leverage = leverage
             self.open_type = open_type
-            self.size = size
+            self.size = int(size)
 
             self.param = {
-            "symbol": self.symbol,
-            "side": self.side,
-            "type": self.order_type.value,
-            "leverage": self.leverage,
-            "open_type": self.open_type.value,
-            "size": self.size,
-            "price": self.price
+                "symbol": self.symbol,
+                "side": self.side.value,
+                "type": self.order_type.value,
+                "leverage": str(self.leverage),
+                "open_type": self.open_type.value,
+                "size": self.size,
             }
-            
+            if self.price is not None:
+                self.param['price'] = str(self.price)
+
         elif market == Market.SPOT:
             if side in FuturesSide:
-                return "Wrong side for spot market"
+                raise RequestException("Wrong side for spot market")
             self.leverage = "Spot order: leverage is not applicable"
             self.open_type = "Spot order: open type is not applicable"
             if order_type == OrderType.MARKET:
@@ -74,7 +79,7 @@ class BitmartOrder(BaseModel, validate_assignment=True):
                     self.size = size
                     self.param = {
                         'symbol': self.symbol,
-                        'side': self.side,
+                        'side': self.side.value,
                         'type': self.order_type.value,
                         'client_order_id': self.client_order_id,
                         'size': self.size,
@@ -85,7 +90,7 @@ class BitmartOrder(BaseModel, validate_assignment=True):
                     self.size = ""
                     self.param = {
                         'symbol': self.symbol,
-                        'side': self.side,
+                        'side': self.side.value,
                         'type': self.order_type.value,
                         'client_order_id': self.client_order_id,
                         'size': "",
@@ -96,19 +101,19 @@ class BitmartOrder(BaseModel, validate_assignment=True):
                 self.size = size
                 self.param = {
                     'symbol': self.symbol,
-                    'side': self.side,
+                    'side': self.side.value,
                     'type': self.order_type.value,
                     'client_order_id': self.client_order_id,
                     'size': self.size,
                     'price': self.price
                 }
 
-    
     def __str__(self):
-        return self.symbol + ": " + self.bt_type
+        return f"{self.symbol}_{self.side} {self.size}@{self.price} id: {self.order_id}"
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
 
 class BitmartFee(BaseModel, validate_assignment=True):
     """
@@ -122,15 +127,16 @@ class BitmartFee(BaseModel, validate_assignment=True):
     taker_fee_rate_B = float
     maker_fee_rate_B = float
 
+
 class BitmartTradeFee(BaseModel, validate_assignment=True):
     """
     Represents a broker's trade fee.
     Attributes:
     """
     symbol = str
-    buy_taker_fee_rate  = float
+    buy_taker_fee_rate = float
     sell_taker_fee_rate = float
-    buy_maker_fee_rate  = float
+    buy_maker_fee_rate = float
     sell_maker_fee_rate = float
 
 
@@ -138,27 +144,30 @@ class BitmartBatchOrder():
     def __init__(self, bt_orders):
         self.bt_orders = bt_orders
 
-class OrderPosition(BaseModel, validate_assignment=True):
+
+class OrderPosition(object):
     """
     Represents an open long or short position in an asset.
     Attributes:
 
     """
+    def __init__(self, symbol):
+        self.symbol: str = symbol
+        self.date_time: datetime
+        self.current_fee: float
+        self.leverage: float
+        self.open_date_time: datetime
+        self.current_value: float
+        self.current_amount: float = 0
+        self.mark_price: float
+        self.position_value: float
+        self.position_cross: float
+        self.close_vol: float
+        self.close_avg_price: float
+        self.current_amount: float
+        self.unrealized_value: float
+        self.realized_value: float
 
-    symbol = str
-    date_time = datetime
-    current_fee = float
-    leverage = float
-    open_date_time = datetime
-    current_value = float
-    mark_price = float
-    position_value = float
-    position_cross = float
-    close_vol = float
-    close_avg_price = float
-    current_amount = float
-    unrealized_value = float
-    realized_value = float
 
 class MarginAccountSymbol(BaseModel, validate_assignment=True):
     """
@@ -216,7 +225,7 @@ class MarginAccountSymbol(BaseModel, validate_assignment=True):
             self.total_asset = None """
 
 
-class BitmartCurrency():
+class BitmartCurrency(object):
     """
     Represents an open long or short position in an asset.
     Attributes:
@@ -233,25 +242,27 @@ class BitmartCurrency():
     withdraw_minfee = float
 
 
-class WalletItem():
-    def __init__(self, symbol, available, frozen, position_deposit="", equity="", unrealized="", wallet_type=Market.SPOT):
+class WalletItem(object):
+    def __init__(self, symbol, available, frozen, position_deposit="", equity="", unrealized="",
+                 wallet_type=Market.SPOT):
         self.symbol = symbol
         self.available = available
         self.frozen = frozen
         self.wallet_type = wallet_type
         if wallet_type == Market.FUTURES:
-            self.position_deposit=position_deposit
-            self.equity=equity
-            self.unrealized=unrealized
+            self.position_deposit = position_deposit
+            self.equity = equity
+            self.unrealized = unrealized
         else:
-            self.position_deposit="Only for futures account"
-            self.equity="Only for futures account"
-            self.unrealized="Only for futures account"
+            self.position_deposit = "Only for futures account"
+            self.equity = "Only for futures account"
+            self.unrealized = "Only for futures account"
 
     def __str__(self):
-        return self.ticker + ": " + self.name
+        return f'{self.symbol}[{self.wallet_type.value}] {self.available}/{self.frozen}'
 
-class Currency():
+
+class Currency(object):
     def __init__(self, id, name, withdraw_enabled, deposit_enabled):
         self.id = id
         self.name = name
@@ -261,7 +272,8 @@ class Currency():
     def __str__(self):
         return self.id + ": " + self.name
 
-class CurrencyDetailed():
+
+class CurrencyDetailed(object):
     def __init__(self, symbol, last_price, quote_volume_24h, base_volume_24h, high_24h,
                  low_24h, open_24h, close_24h, best_ask, best_ask_size, best_bid, best_bid_size,
                  fluctuation, timestamp):
@@ -278,40 +290,41 @@ class CurrencyDetailed():
         self.best_bid = best_bid
         self.best_bid_size = best_bid_size
         self.fluctuation = fluctuation
-        self.date_time = datetime.datetime.fromtimestamp(timestamp)
+        self.date_time = datetime.fromtimestamp(timestamp)
         self.open_interest = None
         self.open_interest_value = None
         self.open_interest_datetime = None
         self.funding_rate = None
-        self.funding_rate_datetimem = None
+        self.funding_rate_datetime = None
 
     def __str__(self):
         return self.id + ": " + self.name
 
-class CurrencyWebSocket():
-    def __init__(self, symbol, last_price, base_volume_24h, high_24h, low_24h, open_24h, s_t):
-        self.base_volume_24h = float(base_volume_24h)
-        self.high_24h = float(high_24h)
+
+class TickerWebSocket(object):
+    def __init__(self, symbol, last_price, volume_24, fair_price, range):
+        self.volume_24 = float(volume_24)
+        self.fair_price = float(fair_price)
         self.last_price = float(last_price)
-        self.low_24h = float(low_24h)
-        self.open_24h = float(open_24h)
-        self.date_time = datetime.datetime.fromtimestamp(s_t)
-        self.symbol =  symbol
+        self.range = float(range)
+        self.symbol = symbol
 
     def __str__(self):
-        return self.id + ": " + self.name
+        return f'{self.symbol}: {self.last_price}'
 
-class BitmartWallet():
+
+class BitmartWallet(object):
     def __init__(self, currencies):
         self.currencies = currencies
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
-class Kline():
-    def __init__(self, timestamp, open, high, low, close, last_price,
-                       volume, quote_volume="", market=Market.SPOT):
-        self.date_time = datetime.datetime.fromtimestamp(timestamp)
+
+class Kline(object):
+    def __init__(self, timestamp, open, high, low, close,  volume, last_price=None,
+                 quote_volume="", market=Market.SPOT):
+        self.date_time = datetime.fromtimestamp(timestamp)
         self.open = float(open)
         self.high = float(high)
         self.low = float(low)
@@ -320,42 +333,43 @@ class Kline():
         self.volume = float(volume)
         self.quote_volume = float(quote_volume) if market == Market.SPOT else "Not applied for FUTURES"
 
-class BitmartSpotBuySells():
-    def __init__(self, amount, total, price, count, bt_type:str):
+
+class BitmartSpotBuySells(object):
+    def __init__(self, amount, total, price, count):
         self.amount = float(amount)
         self.total = float(total)
         self.price = float(price)
         self.count = float(count)
 
-class BitmartFuturesAskBids():
+
+class BitmartFuturesAskBids(object):
     def __init__(self, price, quantity, quantity_above):
         self.price = float(price)
-        self.quantity  = float(quantity)
+        self.quantity = float(quantity)
         self.quantity_above = float(quantity_above)
 
-class BitmartFutureDepth():
+
+class BitmartDepth(object):
     def __init__(self, asks, bids, timestamp):
         self.price = asks
         self.price = bids
-        self.quantity  = datetime.datetime.fromtimestamp(timestamp)
-    
-class BitmartSpotDepth():
-    def __init__(self, buys, sells, timestamp):
-        self.buys = buys
-        self.sells = sells
-        self.quantity  = datetime.datetime.fromtimestamp(timestamp)
+        self.quantity = datetime.fromtimestamp(timestamp)
 
-class BitmartTrade():
-    def __init__(self, amount:float, order_time:int, price:float, count:float, bt_type:str):
+
+class BitmartTrade(object):
+    def __init__(self, amount: float, order_time: int, price: float, count: float, bt_type: str):
         self.amount = amount
         self.order_time = order_time
         self.price = price
         self.count = count
         self.bt_type = bt_type
 
-class BitmartFutureContract():
-    def __init__(self, symbol, product_type, base_currency, quote_currency, volume_precision, price_precision, max_volume, min_volume,
-                 funding_rate, contract_size, index_price, index_name, min_leverage, max_leverage, turnover_24h, volume_24h, last_price,
+
+class BitmartFutureContract(object):
+    def __init__(self, symbol, product_type, base_currency, quote_currency, volume_precision, price_precision,
+                 max_volume, min_volume,
+                 funding_rate, contract_size, index_price, index_name, min_leverage, max_leverage, turnover_24h,
+                 volume_24h, last_price,
                  open_timestamp, expire_timestamp, settle_timestamp):
         self.symbol = symbol
         self.product_type = FuturesContractType.PERPETUAL if int(product_type) == 1 else FuturesContractType.FUTURES
@@ -374,6 +388,6 @@ class BitmartFutureContract():
         self.turnover_24h = turnover_24h
         self.volume_24h = volume_24h
         self.last_price = last_price
-        self.open_date_time = datetime.datetime.fromtimestamp(open_timestamp)
-        self.expire_date_time = datetime.datetime.fromtimestamp(expire_timestamp)
-        self.settle_date_time = datetime.datetime.fromtimestamp(settle_timestamp)
+        self.open_date_time = datetime.fromtimestamp(open_timestamp)
+        self.expire_date_time = datetime.fromtimestamp(expire_timestamp)
+        self.settle_date_time = datetime.fromtimestamp(settle_timestamp)

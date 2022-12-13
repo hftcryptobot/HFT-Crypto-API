@@ -154,7 +154,7 @@ class MarketDataAgent():
                 count = depth["count"]
                 sells.append(BitmartSpotBuySells(amount, total, price, count))
             time_stamp = json.loads(response.content)['data']['timestamp']
-            return BitmartSpotDepth( buys, sells, time_stamp)
+            return BitmartDepth( buys, sells, time_stamp)
         elif Market.FUTURES:
             response = self._request_with_params(GET, FUTURES_MARKET_DEPTH, param)
             asks = []
@@ -170,7 +170,7 @@ class MarketDataAgent():
                 quantity_above = depth[2]
                 bids.append(BitmartFuturesAskBids(price, quantity, quantity_above))
             time_stamp = json.loads(response.content)['data']['timestamp']
-            return BitmartFutureDepth(asks, bids, time_stamp)
+            return BitmartDepth(asks, bids, time_stamp)
 
 
 

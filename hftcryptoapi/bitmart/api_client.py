@@ -3,6 +3,7 @@ from .bm_logging import pyBitMartLog, log
 from . import bitmart_exceptions, bitmart_utils
 from . import constants as c
 
+
 class PyClient(object):
 
     def __init__(self, api_key, secret_key, memo, url, timeout):
@@ -64,7 +65,6 @@ class PyClient(object):
 
         except ValueError:
             raise bitmart_exceptions.RequestException('Invalid Response: %s' % response.text)
-
 
     def _request_without_params(self, method, request_path, auth=c.Auth.NONE):
         return self._request(method, request_path, {}, auth)
