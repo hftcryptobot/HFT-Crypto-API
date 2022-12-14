@@ -15,8 +15,8 @@ if __name__ == '__main__':
     # print(client.get_futures_contracts_details())
     print(client.get_spot_ticker_details("BTC_USDT"))
     # print(client.get_spot_trading_pair_detail("ETH_USDT"))
-    # [print(b) for b in client.get_acount_balance(market=Market.FUTURES).currencies]
-    # print(client.get_order_history(symbol=symbol_eth, market=Market.FUTURES))
+    [print(b) for b in client.get_account_balance(market=Market.FUTURES).currencies]
+    print(client.get_order_history(symbol=symbol_eth, market=Market.FUTURES))
     # print(client.get_list_of_trading_pairs())
     # print(client.get_symbol_kline(symbol=symbol, tf=TimeFrame.tf_1h, market=Market.FUTURES,
     #                               from_time=from_time, to_time=to_time))
@@ -36,16 +36,16 @@ if __name__ == '__main__':
     # input("PRESSS")
 
     # ------------- ORDER
-    order = client.submit_order(market=Market.FUTURES, symbol="ETHUSDT", side=FuturesSide.BUY_OPEN_LONG,
-                                size=1, price=70, open_type=OrderOpenType.CROSS)
-    client.update_order_details(order)
-
-    client.cancel_order(order.symbol, order_id=order.order_id, market=Market.FUTURES)
-    order = client.update_order_details(order)
-
-    print(client.submit_order(market=Market.FUTURES, symbol="ETHUSDT", order_type=OrderType.MARKET,
-                              side=FuturesSide.BUY_OPEN_LONG,
-                              size=5, open_type=OrderOpenType.CROSS))
+    # order = client.submit_order(market=Market.FUTURES, symbol="ETHUSDT", side=FuturesSide.BUY_OPEN_LONG,
+    #                             size=1, price=70, open_type=OrderOpenType.CROSS)
+    # client.update_order_details(order)
+    #
+    # client.cancel_order(order.symbol, order_id=order.order_id, market=Market.FUTURES)
+    # order = client.update_order_details(order)
+    #
+    # print(client.submit_order(market=Market.FUTURES, symbol="ETHUSDT", order_type=OrderType.MARKET,
+    #                           side=FuturesSide.BUY_OPEN_LONG,
+    #                           size=5, open_type=OrderOpenType.CROSS))
     positions = client.get_futures_position_details(symbol_eth)
     amount = [p for p in positions if p.symbol == "ETHUSDT" and p.current_amount != 0][0].current_amount
     print(client.submit_order(market=Market.FUTURES, symbol="ETHUSDT", order_type=OrderType.MARKET,
