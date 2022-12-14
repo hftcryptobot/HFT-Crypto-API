@@ -1,5 +1,6 @@
 import hmac, datetime
-from . import constants as c
+from .data import constants as c
+
 
 def sign(message, secret_key):
     mac = hmac.new(bytes(secret_key, encoding='utf8'), bytes(message, encoding='utf-8'), digestmod='sha256')
@@ -35,4 +36,30 @@ def parse_params_to_str(params):
 
 
 def get_timestamp():
-    return str(datetime.datetime.now().timestamp() * 1000).split('.')[0]
+    return str(int(datetime.datetime.now().timestamp() * 1000))
+
+
+def round_time(dt=None, round_to=60):
+    seconds = (dt.replace(tzinfo=None) - dt.min).seconds
+    rounding = (seconds + round_to / 2) // round_to * round_to
+    return dt + datetime.timedelta(0, rounding - seconds, -dt.microsecond)
+
+
+def get_kline_time(kline_type: c.BtFuturesSocketKlineChannels):
+    items = kline_type.name.split("_")
+    tf_name = items[-1].lower().replace("min", "m").replace("day", "d").replace("week", "w"). \
+        replace("hours", "h").replace("hour", "h")
+    # tf = c.TimeFrame.__dict__[f'tf_{tf_name}']
+    now_ = datetime.datetime.now()
+    now_ = now_.replace(second=0, microsecond=0)
+    tf_val = int(tf_name[:-1])
+    if "m" in tf_name:
+        cm, _ = divmod(now_.minute, tf_val)
+        return now_.replace(minute=cm * tf_val)
+    now_ = now_.replace(minute=0)
+    if "h" in tf_name:
+        ch, _ = divmod(now_.hour, tf_val)
+        return now_.replace(hour=ch * tf_val)
+    now_ = now_.replace(hour=0)
+    # TODO: weeks not implemented
+    return now_

@@ -1,7 +1,7 @@
 import requests, json
-from .bm_logging import pyBitMartLog, log
-from . import bitmart_exceptions, bitmart_utils
-from . import constants as c
+from .bm_logging import log
+from . import exceptions, bitmart_utils
+from .data import constants as c
 
 
 class PyClient(object):
@@ -51,7 +51,7 @@ class PyClient(object):
 
         # exception handle
         if not str(response.status_code) == '200':
-            raise bitmart_exceptions.APIException(response)
+            raise exceptions.APIException(response)
         try:
             res_header = response.headers
             r = dict()

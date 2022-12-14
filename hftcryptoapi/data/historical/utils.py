@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Type, Dict
 
-from hftcryptoapi.common import HTTPResult, RawData
+from hftcryptoapi.common.common_types import HTTPResult, RawData
 
 """
 These functions were created and put in this file to handle all of the edge cases
@@ -89,8 +89,8 @@ def format_dataset_response(
     response_data = get_data_from_response(response)
 
     # add elements to data_by_symbol
-    # for list data types just extend
-    # for non-list types, add as element of a list.
+    # for list data data just extend
+    # for non-list data, add as element of a list.
     # list comprehension used for speed
     [
         data_by_symbol[symbol].extend(data)

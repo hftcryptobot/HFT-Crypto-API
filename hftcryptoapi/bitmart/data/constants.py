@@ -233,7 +233,7 @@ class BtWebSocket(str, Enum):
 
 @unique
 class BtSocketOperation(str, Enum, metaclass=MetaEnum):
-    """Base operation types for Bitmart websockets"""
+    """Base operation data for Bitmart websockets"""
     SUBSCRIBE = "subscribe"
     UNSUBSCRIBE = "unsubscribe"
     LOGIN = "login"
@@ -260,11 +260,11 @@ class BtFuturesSocketKlineChannels(str, Enum):
     K_LINE_CHANNEL_5MIN = "futures/klineBin5m"
     K_LINE_CHANNEL_15MIN = "futures/klineBin15m"
     K_LINE_CHANNEL_30MIN = "futures/klineBin30m"
-    K_LINE_CHANNEL_1HOUR = "futures/klineBin1H"
-    K_LINE_CHANNEL_2HOURS = "futures/klineBin2H"
-    K_LINE_CHANNEL_4HOURS = "futures/klineBin4H"
-    K_LINE_CHANNEL_1DAY = "futures/klineBin1D"
-    K_LINE_CHANNEL_1WEEK = "futures/klineBin1W"
+    K_LINE_CHANNEL_1HOUR = "futures/klineBin1h"
+    K_LINE_CHANNEL_2HOURS = "futures/klineBin2h"
+    K_LINE_CHANNEL_4HOURS = "futures/klineBin4h"
+    K_LINE_CHANNEL_1DAY = "futures/klineBin1d"
+    K_LINE_CHANNEL_1WEEK = "futures/klineBin1w"
 
 @unique
 class BtSpotSocketDepthChannels(str, Enum):
@@ -282,3 +282,4 @@ class BtFuturesSocketDepthChannels(str, Enum):
 BtFuturesTickerChannel = "futures/ticker"
 BtFuturesTPrivatePositionChannel = "futures/position"
 BtFuturesTPrivateAssetChannel = "futures/asset"
+

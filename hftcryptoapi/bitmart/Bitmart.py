@@ -1,12 +1,9 @@
-import json
 from .api_client import PyClient
-from datetime import datetime
-from .constants import *
-from .bitmart_objects import *
-from .bitmart_exceptions import *
-from typing import Dict, Union
+from hftcryptoapi.bitmart.data import *
+from typing import Dict, Union, List
 from .ws_base import BitmartWs
 from typing import Callable
+
 
 class BitmartClient(PyClient):
 
@@ -62,24 +59,24 @@ class BitmartClient(PyClient):
     def get_basic_fee_rate(self):
         response = self._request_without_params(GET, ACCOUNT_USER_FEE, Auth.KEYED)
         bt_fee = BitmartFee()
-
-        bt_fee.level = json.loads(response.content)['data']['level']
-        bt_fee.user_rate_type = json.loads(response.content)['data']['user_rate_type']
-        bt_fee.taker_fee_rate_A = float(json.loads(response.content)['data']['taker_fee_rate_A'])
-        bt_fee.maker_fee_rate_A = float(json.loads(response.content)['data']['maker_fee_rate_A'])
-        bt_fee.taker_fee_rate_B = float(json.loads(response.content)['data']['taker_fee_rate_B'])
-        bt_fee.maker_fee_rate_B = float(json.loads(response.content)['data']['maker_fee_rate_B'])
+        data = json.loads(response.content)['data']
+        bt_fee.level = data['level']
+        bt_fee.user_rate_type = data['user_rate_type']
+        bt_fee.taker_fee_rate_A = float(data['taker_fee_rate_A'])
+        bt_fee.maker_fee_rate_A = float(data['maker_fee_rate_A'])
+        bt_fee.taker_fee_rate_B = float(data['taker_fee_rate_B'])
+        bt_fee.maker_fee_rate_B = float(data['maker_fee_rate_B'])
 
         return bt_fee
 
     def get_trade_fee_rate(self, symbol):
         response = self._request_without_params(GET, ACCOUNT_TRADE_FEE, Auth.KEYED)
         bt_trade_fee = BitmartTradeFee(symbol)
-
-        bt_trade_fee.buy_taker_fee_rate = float(json.loads(response.content)['data']['buy_taker_fee_rate'])
-        bt_trade_fee.sell_taker_fee_rate = float(json.loads(response.content)['data']['sell_taker_fee_rate'])
-        bt_trade_fee.buy_maker_fee_rate = float(json.loads(response.content)['data']['buy_maker_fee_rate'])
-        bt_trade_fee.sell_maker_fee_rate = float(json.loads(response.content)['data']['sell_maker_fee_rate'])
+        data = json.loads(response.content)['data']
+        bt_trade_fee.buy_taker_fee_rate = float(data['buy_taker_fee_rate'])
+        bt_trade_fee.sell_taker_fee_rate = float(data['sell_taker_fee_rate'])
+        bt_trade_fee.buy_maker_fee_rate = float(data['buy_maker_fee_rate'])
+        bt_trade_fee.sell_maker_fee_rate = float(data['sell_maker_fee_rate'])
 
         return bt_trade_fee
 
@@ -87,10 +84,10 @@ class BitmartClient(PyClient):
         response = self._request_without_params(GET, SPOT_TRADING_PAIRS_LIST)
         return json.loads(response.content)['data']['symbols']
 
-    def get_traiding_pair_detail(self):
-        response = self._request_without_params(GET, SPOT_TRADING_PAIRS_DETAILS)
-
-        return 0
+    def get_spot_ticker_details(self, symbol: str):
+        response = self._request_with_params(GET, SPOT_TICKER_DETAILS, {'symbol': symbol})
+        data = json.loads(response.content)["data"]
+        return CurrencyDetailed(**data)
 
     def get_ticker_of_all_pairs(self):
         list_currency_details = []
@@ -118,31 +115,6 @@ class BitmartClient(PyClient):
 
         return list_currency_details
 
-    def get_ticker_details(self, symbol: str):
-        response = self._request_with_params(GET, SPOT_TICKER_DETAILS, {'symbol': symbol})
-
-        symbol = json.loads(response.content)['data']['symbol']
-        last_price = json.loads(response.content)['data']['symbol']
-        quote_volume_24h = json.loads(response.content)['data']['symbol']
-        base_volume_24h = json.loads(response.content)['data']['symbol']
-        high_24h = json.loads(response.content)['data']['symbol']
-        low_24h = json.loads(response.content)['data']['symbol']
-        open_24h = json.loads(response.content)['data']['symbol']
-        close_24h = json.loads(response.content)['data']['symbol']
-        best_ask = json.loads(response.content)['data']['symbol']
-        best_ask_size = json.loads(response.content)['data']['symbol']
-        best_bid = json.loads(response.content)['data']['symbol']
-        best_bid_size = json.loads(response.content)['data']['symbol']
-        fluctuation = json.loads(response.content)['data']['symbol']
-        timestamp = json.loads(response.content)['data']['timestamp']
-
-        currency_details = CurrencyDetailed(symbol, last_price, quote_volume_24h, base_volume_24h, high_24h,
-                                            low_24h, open_24h, close_24h, best_ask, best_ask_size, best_bid,
-                                            best_bid_size,
-                                            fluctuation, timestamp)
-
-        return currency_details
-
     def get_kline_steps(self):
         response = self._request_without_params(GET, SPOT_K_LIE_STEP)
         return json.loads(response.content)['data']['steps']
@@ -169,7 +141,7 @@ class BitmartClient(PyClient):
                 last_price = float(kline['last_price'])
                 volume = float(kline['volume'])
                 quote_volume = float(kline['quote_volume'])
-                kline_object = Kline(date_time, open, high, low, close, volume, last_price,  quote_volume,
+                kline_object = Kline(date_time, open, high, low, close, volume, last_price, quote_volume,
                                      market=market)
                 klines_data.append(kline_object)
 
@@ -190,7 +162,7 @@ class BitmartClient(PyClient):
                 last_price = ""
                 volume = float(kline['volume'])
                 quote_volume = ""
-                kline_object = Kline(date_time, open, high, low, close, volume, last_price,  quote_volume,
+                kline_object = Kline(date_time, open, high, low, close, volume, last_price, quote_volume,
                                      market=market)
                 klines_data.append(kline_object)
 
@@ -209,35 +181,37 @@ class BitmartClient(PyClient):
             response = self._request_with_params(GET, SPOT_BOOK_DEPTH, param)
             buys = []
             sells = []
-            for depth in json.loads(response.content)['data']['buys']:
+            data = json.loads(response.content)['data']
+            for depth in data['buys']:
                 amount = depth["amount"]
                 total = depth["total"]
                 price = depth["price"]
                 count = depth["count"]
                 buys.append(BitmartSpotBuySells(amount, total, price, count))
-            for depth in json.loads(response.content)['data']['sells']:
+            for depth in data['sells']:
                 amount = depth["amount"]
                 total = depth["total"]
                 price = depth["price"]
                 count = depth["count"]
                 sells.append(BitmartSpotBuySells(amount, total, price, count))
-            time_stamp = json.loads(response.content)['data']['timestamp']
+            time_stamp = data['timestamp']
             return BitmartDepth(buys, sells, time_stamp)
         elif Market.FUTURES:
             response = self._request_with_params(GET, FUTURES_MARKET_DEPTH, param)
+            data = json.loads(response.content)['data']
             asks = []
             bids = []
-            for depth in json.loads(response.content)['data']['asks']:
+            for depth in data['asks']:
                 price = depth[0]
                 quantity = depth[1]
                 quantity_above = depth[2]
                 asks.append(BitmartFuturesAskBids(price, quantity, quantity_above))
-            for depth in json.loads(response.content)['data']['bids']:
+            for depth in data['bids']:
                 price = depth[0]
                 quantity = depth[1]
                 quantity_above = depth[2]
                 bids.append(BitmartFuturesAskBids(price, quantity, quantity_above))
-            time_stamp = json.loads(response.content)['data']['timestamp']
+            time_stamp = data['timestamp']
             return BitmartDepth(asks, bids, time_stamp)
 
     def get_symbol_recent_trades(self, symbol: str, N: int = 50):
@@ -279,9 +253,9 @@ class BitmartClient(PyClient):
         for position in json.loads(response.content)['data']:
             order_pos = OrderPosition(symbol=symbol)
             order_pos.leverage = float(position["leverage"])
-            order_pos.date_time = datetime.fromtimestamp(int(position["timestamp"])/1000)
+            order_pos.date_time = datetime.fromtimestamp(int(position["timestamp"]) / 1000)
             order_pos.current_fee = float(position["current_fee"])
-            order_pos.open_date_time = datetime.fromtimestamp(int(position["open_timestamp"])/1000)
+            order_pos.open_date_time = datetime.fromtimestamp(int(position["open_timestamp"]) / 1000)
             order_pos.current_value = float(position["current_value"])
             order_pos.mark_price = float(position["mark_price"])
             order_pos.position_value = float(position["position_value"])
@@ -310,74 +284,75 @@ class BitmartClient(PyClient):
         return self._request_with_params(POST, SPOT_MARGIN_PLACE_ORDER, param, Auth.SIGNED)
 
     # POST https://api-cloud.bitmart.com/spot/v3/cancel_order
-    def cancel_order(self, symbol: str, order_id="",  market=Market.SPOT):
+    def cancel_order(self, symbol: str, order_id="", market=Market.SPOT) -> bool:
         param = {
             'symbol': symbol,
             'order_id': str(order_id),
         }
-        if market == Market.SPOT:
-            response = self._request_with_params(POST, SPOT_CANCEL_ORDER, param, Auth.SIGNED)
-        elif market == Market.FUTURES:
-            response = self._request_with_params(POST, FUTURES_CANCEL_ORDER, param, Auth.SIGNED)
+        url = SPOT_CANCEL_ORDER if market == Market.SPOT else FUTURES_CANCEL_ORDER
+        self._request_with_params(POST, url, param, Auth.SIGNED)
 
         return True
 
     # POST https://api-cloud.bitmart.com/spot/v1/cancel_orders
-    def cancel_all_orders(self, symbol: str, side: SpotSide, market=Market.SPOT):
+    def cancel_all_orders(self, symbol: str, side: SpotSide, market=Market.SPOT) -> bool:
         param = {
             'symbol': symbol,
             'side': side.value
         }
-        if market == Market.SPOT:
-            response = self._request_with_params(POST, SPOT_CANCEL_ALL_ORDERS, param, Auth.SIGNED)
-        elif market == Market.FUTURES:
-            response = self._request_with_params(POST, FUTURES_CANCEL_ALL_ORDERS, param, Auth.SIGNED)
+        url = SPOT_CANCEL_ALL_ORDERS if market == Market.SPOT else FUTURES_CANCEL_ALL_ORDERS
+
+        self._request_with_params(POST, url, param, Auth.SIGNED)
 
         return True
 
     # GET https://api-cloud.bitmart.com/spot/v2/order_detail
-    def update_order_detail(self, order: BitmartOrder, market=Market.SPOT):
+    def update_order_details(self, order: BitmartOrder) -> BitmartOrder:
         param = {
             'order_id': order.order_id
         }
+        market = order.market
         if market == Market.FUTURES:
-            response = self._request_with_params(GET, SPOT_GET_ORDER_DETAILS, param, Auth.KEYED)
-            order.price = json.loads(response.content)['data']['price']
-            order.order_status = json.loads(response.content)['data']['state']
-            order.side = json.loads(response.content)['data']['side']
-            order.order_type = json.loads(response.content)['data']['type']
-            order.leverage = json.loads(response.content)['data']['leverage']
-            order.open_type = json.loads(response.content)['data']['open_type']
-            order.price_avg = json.loads(response.content)['data']['deal_avg_price']
-            order.size = json.loads(response.content)['data']['deal_size']
-            order.create_time = json.loads(response.content)['data']['create_time']
+            param["symbol"] = order.symbol
+            response = self._request_with_params(GET, FUTURES_ORDER_DETAIL, param, Auth.KEYED)
+            data = json.loads(response.content)['data']
+            order.price = data['price']
+            order.order_status = data['state']
+            order.side = data['side']
+            order.order_type = data['type']
+            order.leverage = data['leverage']
+            order.open_type = data['open_type']
+            order.price_avg = data['deal_avg_price']
+            order.size = data['deal_size']
+            order.create_time = data['create_time']
             order.update_time = datetime.fromtimestamp(
-                int(json.loads(response.content)['data']['update_time']))
+                int(data['update_time']) / 1000)
 
         elif market == Market.SPOT:
-            response = self._request_with_params(GET, FUTURES_ORDER_DETAIL, param, Auth.KEYED)
-            order.price = json.loads(response.content)['data']['price']
-            order.order_status = json.loads(response.content)['data']['status']
-            order.side = json.loads(response.content)['data']['side']
-            order.order_type = json.loads(response.content)['data']['type']
+            response = self._request_with_params(GET, SPOT_GET_ORDER_DETAILS, param, Auth.KEYED)
+            data = json.loads(response.content)['data']
+            order.price = data['price']
+            order.order_status = data['status']
+            order.side = data['side']
+            order.order_type = data['type']
             order.leverage = "Not applied for Spot Market"
-            order.open_type = json.loads(response.content)['data']['open_type']
-            order.price_avg = json.loads(response.content)['data']['price_avg']
-            order.size = json.loads(response.content)['data']['size']
-            order.notional = json.loads(response.content)['data']['notional']
-            order.filled_notional = json.loads(response.content)['data']['filled_notional']
-            order.filled_size = json.loads(response.content)['data']['filled_size']
-            order.unfilled_volume = json.loads(response.content)['data']['unfilled_volume']
-            order.order_mode = json.loads(response.content)['data']['order_mode']
-            order.create_time = json.loads(response.content)['data']['create_time']
-            order.update_time = datetime.fromtimestamp(datetime.now())
+            order.open_type = data['open_type']
+            order.price_avg = data['price_avg']
+            order.size = data['size']
+            order.notional = data['notional']
+            order.filled_notional = data['filled_notional']
+            order.filled_size = data['filled_size']
+            order.unfilled_volume = data['unfilled_volume']
+            order.order_mode = data['order_mode']
+            order.create_time = data['create_time']
+            order.update_time = datetime.now()
 
-        return True
+        return order
 
     # GET https://api-cloud.bitmart.com/spot/v3/orders
     def get_order_history(self, symbol: str, market=Market.SPOT,
-                          start_time: Optional[datetime]=None,
-                          end_time:Optional[datetime]=None):
+                          start_time: Optional[datetime] = None,
+                          end_time: Optional[datetime] = None):
 
         order_objects = []
         if market == Market.SPOT:
@@ -426,7 +401,7 @@ class BitmartClient(PyClient):
 
     # Unified methods for trading
     def submit_order(self, symbol: str, side: Union[FuturesSide, SpotSide],
-                     price: Optional[float]=None, size: Optional[float]=0, order_type: OrderType = OrderType.LIMIT,
+                     price: Optional[float] = None, size: Optional[float] = 0, order_type: OrderType = OrderType.LIMIT,
                      market: Market = Market.SPOT, leverage: Optional[int] = 1,
                      open_type: OrderOpenType = OrderOpenType.ISOLATED,
                      client_order_id: Optional[str] = None):
@@ -434,9 +409,9 @@ class BitmartClient(PyClient):
         bm_order = BitmartOrder(symbol, side, size, price, market, order_type, leverage, open_type, client_order_id)
         if market == Market.SPOT or market == Market.SPOT_MARGIN:
             if order_type == OrderType.LIMIT_MAKER:
-                return "Not implemented"
+                raise NotImplemented
             elif order_type == OrderType.IOC:
-                return "Not implemented"
+                raise NotImplemented
             if market == Market.SPOT:
                 response = self._request_with_params(POST, SPOT_PLACE_ORDER, bm_order.param, Auth.SIGNED)
             elif market == Market.SPOT_MARGIN:
@@ -457,53 +432,29 @@ class BitmartClient(PyClient):
             return bm_order
 
     def submit_batch_order(self, orders):
-        return "Not Implemented"
+        raise NotImplemented
 
-    def get_contract(self, symbol: str, market=Market.FUTURES):
-        response = self._request_with_params(GET, FUTURES_CONTRACT_DETAILS, {'symbol': symbol})
-        for item in json.loads(response.content)['data']:
-            symbol = item['symbol']
-            product_type = item['product_type']
-            base_currency = item['base_currency']
-            quote_currency = item['quote_currency']
-            volume_precision = item['volume_precision']
-            price_precision = item['price_precision']
-            max_volume = item['max_volume']
-            min_volume = item['min_volume']
-            funding_rate = item['funding_rate']
-            contract_size = item['contract_size']
-            index_price = item['index_price']
-            index_name = item['index_name']
-            min_leverage = item['min_leverage']
-            max_leverage = item['max_leverage']
-            turnover_24h = item['turnover_24h']
-            volume_24h = item['volume_24h']
-            last_price = item['last_price']
-            open_timestamp = item['open_timestamp']
-            expire_timestamp = item['expire_timestamp']
-            settle_timestamp = item['settle_timestamp']
-        return BitmartFutureContract(symbol, product_type, base_currency, quote_currency, volume_precision,
-                                     price_precision, max_volume, min_volume,
-                                     funding_rate, contract_size, index_price, index_name, min_leverage, max_leverage,
-                                     turnover_24h, volume_24h, last_price,
-                                     open_timestamp, expire_timestamp, settle_timestamp)
+    def get_futures_contracts_details(self)->List[BitmartFutureContract]:
+        response = self._request_with_params(GET, FUTURES_CONTRACT_DETAILS, params={})
+        result: List[BitmartFutureContract] = []
+        for item in json.loads(response.content)['data']['symbols']:
+            contract = BitmartFutureContract(**item)
+            result.append(contract)
 
-    def update_open_interest(self, bt_Currency: CurrencyDetailed, market=Market.FUTURES):
-        response = self._request_with_params(GET, FUTURES_OPEN_INTEREST, {'symbol': bt_Currency.symbol})
-        bt_Currency.open_interest_datetime = json.loads(response.content)['data']["timestamp"]
-        bt_Currency.open_interest = json.loads(response.content)['data']["open_interest"]
-        bt_Currency.open_interest_value = json.loads(response.content)['data']["open_interest_value"]
+        return result
 
-        return True
+    def update_open_interest(self, bt_currency: CurrencyDetailed) -> CurrencyDetailed:
+        response = self._request_with_params(GET, FUTURES_OPEN_INTEREST, {'symbol': bt_currency.symbol})
+        data = json.loads(response.content)['data']
+        bt_currency.open_interest_datetime = data["timestamp"]
+        bt_currency.open_interest = data["open_interest"]
+        bt_currency.open_interest_value = data["open_interest_value"]
+        bt_currency.funding_rate = data["rate_value"]
+        bt_currency.funding_rate_datetime = data["timestamp"]
 
-    def update_current_funding_rate(self, bt_Currency: CurrencyDetailed, market=Market.FUTURES):
-        response = self._request_with_params(GET, FUTURES_OPEN_INTEREST, {'symbol': bt_Currency.symbol})
-        bt_Currency.funding_rate = json.loads(response.content)['data']["rate_value"]
-        bt_Currency.funding_rate_datetime = json.loads(response.content)['data']["timestamp"]
+        return bt_currency
 
-        return True
-
-    def get_acount_balance(self, market=Market.SPOT):
+    def get_account_balance(self, market=Market.SPOT):
         wallet_currencies = []
         if market == Market.SPOT:
             response = self._request_without_params(GET, ACCOUNT_BALANCE, Auth.KEYED)
@@ -514,7 +465,6 @@ class BitmartClient(PyClient):
                 wallet_currencies.append(WalletItem(symbol, available, frozen, wallet_type=Market.SPOT))
         elif market == Market.FUTURES:
             response = self._request_without_params(GET, FUTURES_CONTRACT_ASSETS_DETAIL, Auth.KEYED)
-            # print(json.loads(response.content)['data'])
             for currency in json.loads(response.content)['data']:
                 ticker = currency['currency']
                 available = currency['available_balance']
@@ -530,8 +480,8 @@ class BitmartClient(PyClient):
                 margin_acc_symbol = MarginAccountSymbol(symbol=ticker["symbol"])
                 margin_acc_symbol.risk_rate = float(ticker["risk_rate"])
                 margin_acc_symbol.risk_level = int(ticker["risk_level"])
-                margin_acc_symbol.buy_enabled = True if ticker["buy_enabled"] == "true" else False
-                margin_acc_symbol.sell_enabled = True if ticker["sell_enabled"] == "true" else False
+                margin_acc_symbol.buy_enabled = ticker["buy_enabled"] == "true"
+                margin_acc_symbol.sell_enabled = ticker["sell_enabled"] == "true"
                 margin_acc_symbol.liquidate_price = float(ticker["liquidate_price"])
                 margin_acc_symbol.liquidate_rate = float(ticker["liquidate_rate"])
                 wallet_currencies.append(margin_acc_symbol)
@@ -539,39 +489,3 @@ class BitmartClient(PyClient):
         bitmart_wallet = BitmartWallet(wallet_currencies)
 
         return bitmart_wallet
-
-
-"""     def get_websocket_data(self, market:Market,connection, operation, tickers):
-        args = []
-        if connection == BitmartSocketOperation.SUBSCRIBE:
-            for ticker in tickers:
-                args.append(market.value + "/ticker:"+ticker)
-            if operation in BitmartSocketOperation:
-                param = {
-                    'op': operation.value,
-                    "args": args
-            }
-            ws = create_connection(connection.value)
-            ws.send(json.dumps(param))
-            response =  ws.recv()
-            curr_ws_objects = []
-            print(response)
-            for item in json.loads(response)['data']:
-                base_volume_24h = item["base_volume_24h"]
-                high_24h = item['high_24h']
-                last_price = item['last_price']
-                low_24h = item['low_24h']
-                open_24h = item['open_24h']
-                s_t = item['s_t']
-                symbol = item['symbol']
-
-                if len(tickers) == 1:
-                    cws =  CurrencyWebSocket(symbol, last_price, base_volume_24h, high_24h, low_24h, open_24h, s_t)
-                    return cws
-                else:
-                    curr_ws_objects.append(CurrencyWebSocket(symbol, last_price, base_volume_24h, high_24h, low_24h, open_24h, s_t))
-            return curr_ws_objects
-        elif connection == BitmartSocketOperation.UNSUBSCRIBE:
-            print("Not implemented")
-        elif connection == BitmartSocketOperation.LOGIN:
-            print("Not implemented") """

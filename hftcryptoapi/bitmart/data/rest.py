@@ -1,9 +1,9 @@
 import json
-from .constants import *
+from hftcryptoapi.bitmart.data.constants import *
 from datetime import datetime
-from pydantic import BaseModel, Field
-from typing import Any, Optional, List, Union
-from .bitmart_exceptions import *
+from pydantic import BaseModel
+from typing import Optional, Union
+from hftcryptoapi.bitmart.exceptions import *
 
 class BitmartService():
     def __init__(self, title, service_type, status, start_time, end_time):
@@ -276,7 +276,7 @@ class Currency(object):
 class CurrencyDetailed(object):
     def __init__(self, symbol, last_price, quote_volume_24h, base_volume_24h, high_24h,
                  low_24h, open_24h, close_24h, best_ask, best_ask_size, best_bid, best_bid_size,
-                 fluctuation, timestamp):
+                 fluctuation, timestamp, url):
         self.symbol = symbol
         self.last_price = last_price
         self.quote_volume_24h = quote_volume_24h
@@ -290,7 +290,7 @@ class CurrencyDetailed(object):
         self.best_bid = best_bid
         self.best_bid_size = best_bid_size
         self.fluctuation = fluctuation
-        self.date_time = datetime.fromtimestamp(timestamp)
+        self.date_time = datetime.fromtimestamp(timestamp/1000)
         self.open_interest = None
         self.open_interest_value = None
         self.open_interest_datetime = None
@@ -298,7 +298,7 @@ class CurrencyDetailed(object):
         self.funding_rate_datetime = None
 
     def __str__(self):
-        return self.id + ": " + self.name
+        return f"{self.symbol}: {self.last_price} ({self.base_volume_24h}"
 
 
 class TickerWebSocket(object):
@@ -333,6 +333,9 @@ class Kline(object):
         self.volume = float(volume)
         self.quote_volume = float(quote_volume) if market == Market.SPOT else "Not applied for FUTURES"
 
+    def __str__(self):
+        return f"{self.date_time}: {self.open}, {self.high}, {self.low}, {self.close} | {self.volume}"
+
 
 class BitmartSpotBuySells(object):
     def __init__(self, amount, total, price, count):
@@ -366,20 +369,19 @@ class BitmartTrade(object):
 
 
 class BitmartFutureContract(object):
-    def __init__(self, symbol, product_type, base_currency, quote_currency, volume_precision, price_precision,
+    def __init__(self, symbol, product_type, base_currency, quote_currency, vol_precision, price_precision,
                  max_volume, min_volume,
-                 funding_rate, contract_size, index_price, index_name, min_leverage, max_leverage, turnover_24h,
+                 contract_size, index_price, index_name, min_leverage, max_leverage, turnover_24h,
                  volume_24h, last_price,
                  open_timestamp, expire_timestamp, settle_timestamp):
         self.symbol = symbol
         self.product_type = FuturesContractType.PERPETUAL if int(product_type) == 1 else FuturesContractType.FUTURES
         self.base_currency = base_currency
         self.quote_currency = quote_currency
-        self.volume_precision = volume_precision
+        self.volume_precision = vol_precision
         self.price_precision = price_precision
         self.max_volume = max_volume
         self.min_volume = min_volume
-        self.funding_rate = funding_rate
         self.contract_size = contract_size
         self.index_price = index_price
         self.index_name = index_name
@@ -388,6 +390,6 @@ class BitmartFutureContract(object):
         self.turnover_24h = turnover_24h
         self.volume_24h = volume_24h
         self.last_price = last_price
-        self.open_date_time = datetime.fromtimestamp(open_timestamp)
-        self.expire_date_time = datetime.fromtimestamp(expire_timestamp)
-        self.settle_date_time = datetime.fromtimestamp(settle_timestamp)
+        self.open_date_time = datetime.fromtimestamp(open_timestamp/1000)
+        self.expire_date_time = datetime.fromtimestamp(expire_timestamp/1000)
+        self.settle_date_time = datetime.fromtimestamp(settle_timestamp/1000)

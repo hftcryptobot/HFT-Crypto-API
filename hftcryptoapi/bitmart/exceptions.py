@@ -8,8 +8,11 @@ class APIException(Exception):
     def __str__(self):
         return 'APIException(http status=%s): response=%s url=%s' % (self.status_code, self.response, self.url)
 
+
 class AuthException(Exception):
     pass
+
+
 class RequestException(Exception):
 
     def __init__(self, message):
