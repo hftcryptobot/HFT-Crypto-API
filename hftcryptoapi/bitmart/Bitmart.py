@@ -27,6 +27,10 @@ class BitmartClient(PyClient):
         self.ws_public[market].start(on_message)
         self.ws_private[market].start(on_message)
 
+    def stop_websockets(self, market: Market):
+        self.ws_public[market].stop()
+        self.ws_private[market].stop()
+
     def get_system_time(self):
         response = self._request_without_params(GET, SYSTEM_TIME)
         server_time = json.loads(response.content)['data']['server_time']
@@ -251,32 +255,20 @@ class BitmartClient(PyClient):
         response = self._request_with_params(GET, FUTURES_CURRENT_POSITION, {'symbol': symbol}, Auth.SIGNED)
         order_positions = []
         for position in json.loads(response.content)['data']:
-            order_pos = OrderPosition(symbol=symbol)
-            order_pos.leverage = float(position["leverage"])
-            order_pos.date_time = datetime.fromtimestamp(int(position["timestamp"]) / 1000)
-            order_pos.current_fee = float(position["current_fee"])
-            order_pos.open_date_time = datetime.fromtimestamp(int(position["open_timestamp"]) / 1000)
-            order_pos.current_value = float(position["current_value"])
-            order_pos.mark_price = float(position["mark_price"])
-            order_pos.position_value = float(position["position_value"])
-            order_pos.position_cross = float(position["position_cross"])
-            order_pos.close_vol = float(position["close_vol"])
-            order_pos.close_avg_price = float(position["close_avg_price"])
-            order_pos.current_amount = float(position["current_amount"])
-            order_pos.unrealized_value = float(position["unrealized_value"])
-            order_pos.realized_value = float(position["realized_value"])
+            order_pos = OrderPosition(**position)
+
             order_positions.append(order_pos)
 
         return order_positions
 
     # POST https://api-cloud.bitmart.com/spot/v1/margin/submit_order
-    def place_margin_order(self, symbol: str, side: str, type: str, clientOrderId='', size='', price='',
+    def place_margin_order(self, symbol: str, side: str, type: str, client_order_id='', size='', price='',
                            notional=''):
         param = {
             'symbol': symbol,
             'side': side,
             'type': type,
-            'clientOrderId': clientOrderId,
+            'clientOrderId': client_order_id,
             'size': size,
             'price': price,
             'notional': notional
@@ -316,35 +308,33 @@ class BitmartClient(PyClient):
             param["symbol"] = order.symbol
             response = self._request_with_params(GET, FUTURES_ORDER_DETAIL, param, Auth.KEYED)
             data = json.loads(response.content)['data']
-            order.price = data['price']
-            order.order_status = data['state']
-            order.side = data['side']
+            order.price = float(data['price'])
+            order.order_status = OrderState(data['state'])
+            order.side = FuturesSide(data['side'])
             order.order_type = data['type']
-            order.leverage = data['leverage']
-            order.open_type = data['open_type']
-            order.price_avg = data['deal_avg_price']
-            order.size = data['deal_size']
-            order.create_time = data['create_time']
-            order.update_time = datetime.fromtimestamp(
-                int(data['update_time']) / 1000)
+            order.leverage = int(data['leverage'])
+            order.open_type = OrderOpenType(data['open_type'])
+            order.price_avg = float(data['deal_avg_price'])
+            order.size = float(data['deal_size'])
+            order.create_time = datetime.fromtimestamp(int(data['create_time']) / 1000)
+            order.update_time = datetime.fromtimestamp(int(data['update_time']) / 1000)
 
         elif market == Market.SPOT:
             response = self._request_with_params(GET, SPOT_GET_ORDER_DETAILS, param, Auth.KEYED)
             data = json.loads(response.content)['data']
-            order.price = data['price']
+            order.price = float(data['price'])
             order.order_status = data['status']
-            order.side = data['side']
-            order.order_type = data['type']
+            order.side = SpotSide(data['side'])
+            order.order_type = OrderType(data['type'])
             order.leverage = "Not applied for Spot Market"
-            order.open_type = data['open_type']
-            order.price_avg = data['price_avg']
-            order.size = data['size']
-            order.notional = data['notional']
-            order.filled_notional = data['filled_notional']
-            order.filled_size = data['filled_size']
-            order.unfilled_volume = data['unfilled_volume']
-            order.order_mode = data['order_mode']
-            order.create_time = data['create_time']
+            order.price_avg = float(data['price_avg'])
+            order.size = float(data['size'])
+            order.notional = float(data['notional'])
+            order.filled_notional = float(data['filled_notional'])
+            order.filled_size = float(data['filled_size'])
+            order.unfilled_volume = float(data['unfilled_volume'])
+            order.order_mode = OrderMode(data['order_mode'])
+            order.create_time = datetime.fromtimestamp(data['create_time']/1000)
             order.update_time = datetime.now()
 
         return order

@@ -5,18 +5,14 @@ from pydantic import BaseModel
 from typing import Optional, Union
 from hftcryptoapi.bitmart.exceptions import *
 
-class BitmartService():
+
+class BitmartService:
     def __init__(self, title, service_type, status, start_time, end_time):
         self.title = title
         self.service_type = "Spot API service" if service_type == "spot" else "Contract API service"
-        if int(status) == 0:
-            self.status = ServiceStatus.WAITING
-        elif int(status) == 1:
-            self.status = ServiceStatus.WORKING
-        elif int(status) == 2:
-            self.status = ServiceStatus.COMPLETED
-        self.start_time = datetime.fromtimestamp(start_time)
-        self.end_time = datetime.fromtimestamp(end_time)
+        self.status = ServiceStatus(int(status))
+        self.start_time = datetime.fromtimestamp(start_time/1000)
+        self.end_time = datetime.fromtimestamp(end_time/1000)
 
 
 class BitmartOrder(object):
@@ -37,7 +33,7 @@ class BitmartOrder(object):
             self.create_time = datetime.fromtimestamp(create_time)
 
         self.order_type = order_type
-        self.price = price
+        self.price = float(price) if price is not None else None
         self.client_order_id = client_order_id
         self.market = market
         self.order_id = order_id
@@ -63,7 +59,7 @@ class BitmartOrder(object):
                 "type": self.order_type.value,
                 "leverage": str(self.leverage),
                 "open_type": self.open_type.value,
-                "size": self.size,
+                "size": size,
             }
             if self.price is not None:
                 self.param['price'] = str(self.price)
@@ -76,14 +72,14 @@ class BitmartOrder(object):
             if order_type == OrderType.MARKET:
                 if side == SpotSide.SELL:
                     self.notional = ""
-                    self.size = size
+                    self.size = float(size)
                     self.param = {
                         'symbol': self.symbol,
                         'side': self.side.value,
                         'type': self.order_type.value,
                         'client_order_id': self.client_order_id,
-                        'size': self.size,
-                        'notional': self.notional
+                        'size': str(self.size),
+                        'notional': str(self.notional)
                     }
                 elif side == SpotSide.BUY:
                     self.notional = size
@@ -94,18 +90,18 @@ class BitmartOrder(object):
                         'type': self.order_type.value,
                         'client_order_id': self.client_order_id,
                         'size': "",
-                        'notional': self.size
+                        'notional': str(self.size)
                     }
             elif order_type == OrderType.LIMIT:
                 self.notional = ""
-                self.size = size
+                self.size = float(size)
                 self.param = {
                     'symbol': self.symbol,
                     'side': self.side.value,
                     'type': self.order_type.value,
                     'client_order_id': self.client_order_id,
-                    'size': self.size,
-                    'price': self.price
+                    'size': str(self.size),
+                    'price': str(self.price)
                 }
 
     def __str__(self):
@@ -140,7 +136,7 @@ class BitmartTradeFee(BaseModel, validate_assignment=True):
     sell_maker_fee_rate = float
 
 
-class BitmartBatchOrder():
+class BitmartBatchOrder:
     def __init__(self, bt_orders):
         self.bt_orders = bt_orders
 
@@ -151,22 +147,24 @@ class OrderPosition(object):
     Attributes:
 
     """
-    def __init__(self, symbol):
+    def __init__(self, symbol, leverage,  current_fee, current_value,
+                 mark_price, position_value, position_cross, close_vol, close_avg_price, current_amount,
+                 unrealized_value, realized_value, timestamp, open_timestamp):
         self.symbol: str = symbol
-        self.date_time: datetime
-        self.current_fee: float
-        self.leverage: float
-        self.open_date_time: datetime
-        self.current_value: float
-        self.current_amount: float = 0
-        self.mark_price: float
-        self.position_value: float
-        self.position_cross: float
-        self.close_vol: float
-        self.close_avg_price: float
-        self.current_amount: float
-        self.unrealized_value: float
-        self.realized_value: float
+        self.timestamp = datetime.fromtimestamp(int(timestamp) / 1000)
+        self.current_fee: float = float(current_fee)
+        self.leverage: float = float(leverage)
+        self.open_timestamp: datetime = datetime.fromtimestamp(int(open_timestamp) / 1000)
+        self.current_value: float = float(current_value)
+        self.mark_price: float = float(mark_price)
+        self.position_value: float = float(position_value)
+        self.position_cross: float = float(position_cross)
+        self.close_vol: float = float(close_vol)
+        self.close_avg_price: float = float(close_avg_price)
+        self.current_amount: float = int(current_amount)
+        self.unrealized_value: float = float(unrealized_value)
+        self.realized_value: float = float(realized_value)
+
 
 
 class MarginAccountSymbol(BaseModel, validate_assignment=True):
@@ -183,46 +181,6 @@ class MarginAccountSymbol(BaseModel, validate_assignment=True):
     sell_enabled = bool
     liquidate_price = float
     liquidate_rate = float
-
-
-"""  def get_margin_acount_balance(self, symbol):
-        wallet_currencies = []
-        response = self._request_with_params(GET, ACCOUNT_MARGIN_DETAILS, {'symbol': symbol}, Auth.KEYED)
-        for ticker in json.loads(response.content)['data']['symbols']:
-            self.symbol = symbol
-            self.risk_rate = float(ticker["risk_rate"])
-            self.risk_level= int(ticker["risk_level"])
-            self.buy_enabled = True if ticker["buy_enabled"] == "true" else False
-            self.sell_enabled = True if ticker["sell_enabled"] == "true" else False
-            self.liquidate_price = float(ticker["liquidate_price"])
-            self.liquidate_rate = float(ticker["liquidate_rate"])
-             = float(ticker["base"])
-
-    class MarginAccountSymbolBase():
-        def __init__(self, currency):
-            self.currency = currency
-            self.borrow_enabled = False
-            self.borrowed = None
-            self.borrow_unpaid = None
-            self.interest_unpaid = None
-            self.available = None
-            self.frozen = None
-            self.net_asset = None
-            self.net_assetBTC = None
-            self.total_asset = None
-    
-    class MarginAccountSymbolQuote():
-        def __init__(self, currency):
-            self.currency = currency
-            self.borrow_enabled = False
-            self.borrowed = None
-            self.borrow_unpaid = None
-            self.interest_unpaid = None
-            self.available = None
-            self.frozen = None
-            self.net_asset = None
-            self.net_assetBTC = None
-            self.total_asset = None """
 
 
 class BitmartCurrency(object):
@@ -301,12 +259,26 @@ class CurrencyDetailed(object):
         return f"{self.symbol}: {self.last_price} ({self.base_volume_24h}"
 
 
-class TickerWebSocket(object):
+class TickerFuturesWebSocket(object):
     def __init__(self, symbol, last_price, volume_24, fair_price, range):
         self.volume_24 = float(volume_24)
         self.fair_price = float(fair_price)
         self.last_price = float(last_price)
         self.range = float(range)
+        self.symbol = symbol
+
+    def __str__(self):
+        return f"{self.symbol}: {self.last_price} ({self.volume_24}"
+
+
+class TickerSpotWebSocket(object):
+    def __init__(self, symbol, last_price, open_24h, high_24h, low_24h, base_volume_24h, s_t):
+        self.open_24h = float(open_24h)
+        self.high_24h = float(high_24h)
+        self.low_24h = float(low_24h)
+        self.base_volume_24h = float(base_volume_24h)
+        self.last_price = float(last_price)
+        self.timestamp = datetime.fromtimestamp(s_t)
         self.symbol = symbol
 
     def __str__(self):
@@ -363,7 +335,7 @@ class BitmartTrade(object):
     def __init__(self, amount: float, order_time: int, price: float, count: float, bt_type: str):
         self.amount = amount
         self.order_time = order_time
-        self.price = price
+        self.price = float(price)
         self.count = count
         self.bt_type = bt_type
 
@@ -378,13 +350,13 @@ class BitmartFutureContract(object):
         self.product_type = FuturesContractType.PERPETUAL if int(product_type) == 1 else FuturesContractType.FUTURES
         self.base_currency = base_currency
         self.quote_currency = quote_currency
-        self.volume_precision = vol_precision
-        self.price_precision = price_precision
-        self.max_volume = max_volume
-        self.min_volume = min_volume
-        self.contract_size = contract_size
-        self.index_price = index_price
-        self.index_name = index_name
+        self.volume_precision = float(vol_precision)
+        self.price_precision = float(price_precision)
+        self.max_volume = float(max_volume)
+        self.min_volume = float(min_volume)
+        self.contract_size = float(contract_size)
+        self.index_price = float(index_price)
+        self.index_name = float(index_name)
         self.min_leverage = min_leverage
         self.max_leverage = max_leverage
         self.turnover_24h = turnover_24h
