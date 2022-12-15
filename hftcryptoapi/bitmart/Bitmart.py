@@ -46,7 +46,7 @@ class BitmartClient(PyClient):
             start_time = bt_service["start_time"]
             end_time = bt_service["end_time"]
             services.append(BitmartService(title, service_type, status, start_time, end_time))
-        return datetime.fromtimestamp(services)
+        return services
 
     # Functions for Public Market Data
     def get_currency_list(self):
@@ -334,7 +334,7 @@ class BitmartClient(PyClient):
             order.filled_size = float(data['filled_size'])
             order.unfilled_volume = float(data['unfilled_volume'])
             order.order_mode = OrderMode(data['order_mode'])
-            order.create_time = datetime.fromtimestamp(data['create_time']/1000)
+            order.create_time = datetime.fromtimestamp(data['create_time'] / 1000)
             order.update_time = datetime.now()
 
         return order
@@ -424,7 +424,7 @@ class BitmartClient(PyClient):
     def submit_batch_order(self, orders):
         raise NotImplemented
 
-    def get_futures_contracts_details(self)->List[BitmartFutureContract]:
+    def get_futures_contracts_details(self) -> List[BitmartFutureContract]:
         response = self._request_with_params(GET, FUTURES_CONTRACT_DETAILS, params={})
         result: List[BitmartFutureContract] = []
         for item in json.loads(response.content)['data']['symbols']:
@@ -479,3 +479,26 @@ class BitmartClient(PyClient):
         bitmart_wallet = BitmartWallet(wallet_currencies)
 
         return bitmart_wallet
+
+    def close_futures_position(self, symbol: str, position_side: Position,
+                               open_type: OrderOpenType = OrderOpenType.CROSS) -> bool:
+        is_cross = open_type == OrderOpenType.CROSS
+        order_side = FuturesSide.SELL_CLOSE_LONG if position_side == Position.LONG else FuturesSide.BUY_CLOSE_SHORT
+        positions = self.get_futures_position_details(symbol)
+        open_positions = [p for p in positions if p.symbol == symbol and p.current_amount != 0]
+
+        result = False
+        for p in open_positions:
+            if not is_cross and p.position_cross or is_cross and not p.position_cross:
+                continue
+
+            size = p.current_amount
+
+            order_open_type = OrderOpenType.CROSS if is_cross and p.position_cross else OrderOpenType.ISOLATED
+
+            self.submit_order(market=Market.FUTURES, symbol=symbol, order_type=OrderType.MARKET,
+                              side=order_side,
+                              size=size, open_type=order_open_type)
+            result = True
+
+        return result

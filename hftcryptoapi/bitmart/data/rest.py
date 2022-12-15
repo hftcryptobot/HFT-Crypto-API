@@ -9,7 +9,7 @@ from hftcryptoapi.bitmart.exceptions import *
 class BitmartService:
     def __init__(self, title, service_type, status, start_time, end_time):
         self.title = title
-        self.service_type = "Spot API service" if service_type == "spot" else "Contract API service"
+        self.service_type = service_type
         self.status = ServiceStatus(int(status))
         self.start_time = datetime.fromtimestamp(start_time/1000)
         self.end_time = datetime.fromtimestamp(end_time/1000)

@@ -14,7 +14,7 @@ class BitmartWs(object):
     def __init__(self, uri: str, market: Market, api_key=None, memo=None, secret_key=None):
         self.uri = uri
         self.ws: websockets.WebSocketClientProtocol = None
-        self.loop = None
+        self.loop = asyncio.new_event_loop()
         self.is_connected = False
         self.market = market
         self.api_key = api_key
@@ -56,7 +56,13 @@ class BitmartWs(object):
         self.is_stop = True
         try:
             if self.is_connected:
-                self.loop.run(self.ws.close())
+                pass
+                # self.loop.call_soon_threadsafe(self.loop.stop)
+                try:
+                    self.loop.run_until_complete(self.ws.close())
+                    self.loop.stop()
+                except ValueError:
+                    pass
             self.ws_thread.join()
         except RuntimeError:
             pass
@@ -129,7 +135,8 @@ class BitmartWs(object):
             logging.warning(f"WS {self.market} Connection Error: {e}. Sleep {sleep_time}...")
             await asyncio.sleep(sleep_time)
         except Exception as e:
-            logging.warning(f"WS {self.market} Connection Lost at {datetime.utcnow()} {e}")
+            if not self.is_stop:
+                logging.warning(f"WS {self.market} Connection Lost at {datetime.utcnow()} {e}")
 
     async def _auth(self):
         if self.api_key is not None:
@@ -142,7 +149,6 @@ class BitmartWs(object):
         await self.ws.send(json.dumps({"action": "subscribe", "args": params}))
 
     async def _socket_loop(self):
-        self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
         while not self.is_stop:
             await self._connect()
@@ -150,3 +156,4 @@ class BitmartWs(object):
             await self._subscribe(self.params)
             await self._read_socket()
             self.is_connected = False
+            # await self.ws.close()

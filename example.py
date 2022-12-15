@@ -12,6 +12,8 @@ if __name__ == '__main__':
     symbol = "BTCUSDT"
     symbol_eth = "ETHUSDT"
     client = Bitmart.BitmartClient(api_key, secret_key, memo)
+    items = client.get_service_status()
+    print(items)
     # print(client.get_futures_contracts_details())
     # print(client.get_spot_ticker_details("BTC_USDT"))
     # print(client.get_spot_trading_pair_detail("ETH_USDT"))
@@ -27,12 +29,12 @@ if __name__ == '__main__':
     #
 
     # ------------- WEB SOCKETS
-    client.subscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
+    # client.subscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
     # client.subscribe_private(Market.FUTURES, [BtFuturesTPrivateAssetChannel], ['ETH', 'USDT'])
     # client.subscribe_public(Market.FUTURES, [BtFuturesTickerChannel])
     # client.subscribe_public(Market.FUTURES, [BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR], [symbol, symbol_eth])
 
-    client.start_websockets(Market.FUTURES, on_message=lambda message: print(f' {message}'))
+    # client.start_websockets(Market.FUTURES, on_message=lambda message: print(f' {message}'))
     # input("PRESSS")
 
     # ------------- ORDER
@@ -47,8 +49,9 @@ if __name__ == '__main__':
     # order = client.update_order_details(order)
     #
     # print(client.submit_order(market=Market.FUTURES, symbol="ETHUSDT", order_type=OrderType.MARKET,
-    #                           side=FuturesSide.BUY_OPEN_LONG,
-    #                           size=5, open_type=OrderOpenType.CROSS))
+    #                           side=FuturesSide.SELL_OPEN_SHORT,
+    #                           size=1, open_type=OrderOpenType.CROSS))
+    # print(client.close_futures_position(symbol="ETHUSDT", position_side=Position.SHORT, open_type=OrderOpenType.CROSS))
     # positions = client.get_futures_position_details(symbol_eth)
     # amount = [p for p in positions if p.symbol == "ETHUSDT" and p.current_amount != 0][0].current_amount
     # print(client.submit_order(market=Market.FUTURES, symbol="ETHUSDT", order_type=OrderType.MARKET,
