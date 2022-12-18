@@ -1,0 +1,3 @@
+API_KEY = "ff8a7fe83bd6d51ba2c7e4314574e4865b32be5c"
+SECRET_KEY = "b5d6f14e0ec6d5b8eecc5e67a28a60f3886766e5660fb2bc2d305ff7df9efccd"
+MEMO = "dasein"
