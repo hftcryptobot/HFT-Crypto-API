@@ -174,10 +174,8 @@ class BitmartWs(object):
             else:
                 params["op"] = "login"
             auth_str = json.dumps(params)
-            print(auth_str)
             await self.ws.send(auth_str)
             message = await self.ws.recv()
-            print(message)
 
     async def _subscribe(self, params):
         action_name = "action" if self.market == Market.FUTURES else "op"
@@ -192,7 +190,6 @@ class BitmartWs(object):
         while not self.is_stop:
             await self._connect()
             await self._auth()
-            print("AUTH")
             await self._subscribe(self.params)
             await self._read_socket()
             self.is_connected = False

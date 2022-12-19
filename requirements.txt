@@ -1,5 +1,5 @@
-requests==2.23.0
-urllib3==1.21.1
+requests>=2.25
+urllib3>=1.26
 utils==1.0.1
 websockets>=9.1
 pytest==6.2.1
