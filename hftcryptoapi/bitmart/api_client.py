@@ -61,10 +61,10 @@ class PyClient(object):
                 r['Reset'] = res_header['X-BM-RateLimit-Reset']
             except:
                 pass
-            return response#json(), r
+            return response
 
         except ValueError:
-            raise bitmart_exceptions.RequestException('Invalid Response: %s' % response.text)
+            raise exceptions.RequestException('Invalid Response: %s' % response.text)
 
     def _request_without_params(self, method, request_path, auth=c.Auth.NONE):
         return self._request(method, request_path, {}, auth)

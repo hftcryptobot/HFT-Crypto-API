@@ -1,10 +1,9 @@
 import json
 from hftcryptoapi.bitmart.data.constants import *
 from datetime import datetime
-from pydantic import BaseModel
 from typing import Optional, Union
 from hftcryptoapi.bitmart.exceptions import *
-
+from typing import List
 
 class BitmartService:
     def __init__(self, title, service_type, status, start_time, end_time):
@@ -107,7 +106,7 @@ class BitmartOrder(object):
                 }
 
     def __str__(self):
-        return f"{self.symbol}_{self.side} {self.size}@{self.price} id: {self.order_id}"
+        return f"{self.market.name}_{self.symbol}_{self.side} {self.size}@{self.price} id: {self.order_id}"
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -259,7 +258,7 @@ class SpotTickerDetails(object):
         self.funding_rate_datetime = None
 
     def __str__(self):
-        return f"{self.symbol}: {self.last_price} ({self.base_volume_24h}"
+        return f"{self.symbol}: {self.last_price} ({self.base_volume_24h})"
 
 
 class FuturesOpenInterest(object):
@@ -286,7 +285,7 @@ class TickerFuturesWebSocket(object):
         self.symbol = symbol
 
     def __str__(self):
-        return f"{self.symbol}: {self.last_price} ({self.volume_24}"
+        return f"{self.symbol}: {self.last_price} ({self.volume_24})"
 
 
 class TickerSpotWebSocket(object):
@@ -305,7 +304,7 @@ class TickerSpotWebSocket(object):
 
 class BitmartWallet(object):
     def __init__(self, items):
-        self.items = items
+        self.items: List[WalletItem] = items
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

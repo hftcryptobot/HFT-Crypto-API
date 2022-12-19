@@ -3,7 +3,7 @@ from hftcryptoapi.bitmart.data import *
 from typing import Dict, Union, List
 from .ws_base import BitmartWs
 from typing import Callable
-
+from time import sleep
 
 class BitmartClient(PyClient):
 
@@ -14,8 +14,7 @@ class BitmartClient(PyClient):
                                                           Market.FUTURES: BitmartWs(CONTRACT_WS_URL, Market.FUTURES)}
         self.ws_private: Dict[Union[Market], BitmartWs] = {
             Market.SPOT: BitmartWs(WS_URL_USER, Market.SPOT, api_key, memo, secret_key),
-            Market.FUTURES: BitmartWs(CONTRACT_WS_URL_USER, Market.FUTURES,
-                                      api_key, memo, secret_key)}
+            Market.FUTURES: BitmartWs(CONTRACT_WS_URL_USER, Market.FUTURES, api_key, memo, secret_key)}
 
     def subscribe_private(self, market: Market, channels: List[str], symbols: Optional[List[str]] = None):
         self.ws_private[market].subscribe(channels, symbols)
@@ -36,6 +35,11 @@ class BitmartClient(PyClient):
     def stop_websockets(self, market: Market):
         self.ws_public[market].stop()
         self.ws_private[market].stop()
+
+    def wait_for_socket_connection(self, market: Market, is_public: bool = True):
+        ws = self.ws_public[market] if is_public else self.ws_private[market]
+        while not ws.is_connected:
+            sleep(1)
 
     def get_system_time(self) -> datetime:
         response = self._request_without_params(GET, SYSTEM_TIME)

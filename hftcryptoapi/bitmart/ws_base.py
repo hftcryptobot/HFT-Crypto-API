@@ -24,6 +24,7 @@ class BitmartWs(object):
         self.params = []
         self.on_message = None
         self.is_stop = False
+        self.name_of_group = "group" if market == market.FUTURES else "table"
 
     def _get_subscription_list(self, channels: List[str], symbols: Optional[List[str]] = None):
         params = []
@@ -79,17 +80,27 @@ class BitmartWs(object):
 
     def _on_message(self, message):
         try:
+            if message.get("errorMessage"):
+                raise WebSocketException(message)
             if message.get("action", False):
                 logging.debug(message)
             else:
-                # print(message)
-                group = message["group"]
+                group = message[self.name_of_group]
                 data = message["data"]
                 if "/ticker" in group:
                     is_futures = self.market == Market.FUTURES
-                    ticker = TickerFuturesWebSocket(**data) if is_futures else TickerSpotWebSocket(**data)
-                    self.on_message(ticker)
-                elif "/kline" in group:
+                    if is_futures:
+                        self.on_message(TickerFuturesWebSocket(**data))
+                    else:
+                        for item in data:
+                            ticker = TickerSpotWebSocket(**item)
+                            self.on_message(ticker)
+                elif "spot/kline" in group:
+                    for item in data:
+                        kline = WebSocketKline(symbol=item["symbol"], candle=list(item['candle']),
+                                               market=self.market)
+                        self.on_message(kline)
+                elif "futures/kline" in group:
                     items = data['items']
                     for item in items:
                         kline = WebSocketKline(symbol=data["symbol"], candle=list(item.values()),
@@ -103,13 +114,18 @@ class BitmartWs(object):
                 elif "/asset" in group:
                     self.on_message(WebSocketAssetFutures(**data))
                 elif "spot/depth" in group:
-                    self.on_message(WebSocketDepthSpot(**data))
+                    for item in data:
+                        self.on_message(WebSocketDepthSpot(**item))
                 elif "futures/depth" in group:
                     self.on_message(WebSocketDepthFutures(**data))
                 elif "spot/trade" in group:
-                    self.on_message(WebSocketTrade(**data))
+                    for item in data:
+                        self.on_message(WebSocketTrade(**item))
                 elif "spot/order" in group:
-                    self.on_message(WebSocketOrderProgress(**data))
+                    for item in data:
+                        self.on_message(WebSocketOrderProgress(**item))
+        except WebSocketException as e:
+            raise e
         except Exception as e:
             logging.error(f"WS on message: {e}")
 
@@ -136,7 +152,6 @@ class BitmartWs(object):
                 message = await self.ws.recv()
                 try:
                     for line in str(message).splitlines():
-                        # msg = ujson.loads(line)
                         self._on_message(json.loads(line))  # await
                 except Exception as e:
                     logging.error(f"WS read error {e}")
@@ -152,20 +167,32 @@ class BitmartWs(object):
         if self.api_key is not None:
             timestamp = get_timestamp()
             sign_ = sign(f'{timestamp}#{self.memo}#bitmart.WebSocket', self.secret_key)
-            auth_str = json.dumps({"action": "access", "args": [self.api_key, timestamp, sign_, "web"]})
+            params = {"args": [self.api_key, timestamp, sign_]}
+            if self.market is Market.FUTURES:
+                params["action"] = "access"
+                params["args"].append("web")
+            else:
+                params["op"] = "login"
+            auth_str = json.dumps(params)
+            print(auth_str)
             await self.ws.send(auth_str)
+            message = await self.ws.recv()
+            print(message)
 
     async def _subscribe(self, params):
-        await self.ws.send(json.dumps({"action": "subscribe", "args": params}))
+        action_name = "action" if self.market == Market.FUTURES else "op"
+        await self.ws.send(json.dumps({action_name: "subscribe", "args": params}))
 
     async def _unsubscribe(self, params):
-        await self.ws.send(json.dumps({"action": "unsubscribe", "args": params}))
+        action_name = "action" if self.market == Market.FUTURES else "op"
+        await self.ws.send(json.dumps({action_name: "unsubscribe", "args": params}))
 
     async def _socket_loop(self):
         asyncio.set_event_loop(self.loop)
         while not self.is_stop:
             await self._connect()
             await self._auth()
+            print("AUTH")
             await self._subscribe(self.params)
             await self._read_socket()
             self.is_connected = False

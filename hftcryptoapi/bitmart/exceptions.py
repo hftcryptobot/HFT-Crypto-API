@@ -9,6 +9,15 @@ class APIException(Exception):
         return 'APIException(http status=%s): response=%s url=%s' % (self.status_code, self.response, self.url)
 
 
+class WebSocketException(Exception):
+    def __init__(self, error_response):
+        self.message = error_response.get('errorMessage', "")
+        self.code = error_response.get('errorCode', "")
+        self.error_response = error_response
+
+    def __str__(self):
+        return 'WebSocketException: message=%s code=%s' % (self.message, self.code)
+
 class AuthException(Exception):
     pass
 

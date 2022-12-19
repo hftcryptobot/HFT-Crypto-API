@@ -49,7 +49,6 @@ def get_kline_time(kline_type: c.BtFuturesSocketKlineChannels):
     items = kline_type.name.split("_")
     tf_name = items[-1].lower().replace("min", "m").replace("day", "d").replace("week", "w"). \
         replace("hours", "h").replace("hour", "h")
-    # tf = c.TimeFrame.__dict__[f'tf_{tf_name}']
     now_ = datetime.datetime.now()
     now_ = now_.replace(second=0, microsecond=0)
     tf_val = int(tf_name[:-1])

@@ -35,7 +35,8 @@ if __name__ == '__main__':
     # fee_rate = client.get_spot_user_fee_rate()
     # bt_trade_fee = client.get_spot_trade_fee_rate(symbol_spot)
 
-    # order = client.submit_order(market=Market.SPOT, symbol="ETH_USDT", side=SpotSide.BUY, size=0.1, price=70)
+    # order = client.submit_order(market=Market.FUTURES, symbol=symbol_eth,
+    #                             side=FuturesSide.BUY_OPEN_LONG, size=10, price=70, open_type=OrderOpenType.CROSS)
     # order = client.update_order_details(order)
     # client.cancel_order(order)
     # # OR
@@ -49,16 +50,27 @@ if __name__ == '__main__':
     #
 
     # ------------- WEB SOCKETS
-    # client.subscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
-    # client.subscribe_private(Market.FUTURES, [BtFuturesTPrivateAssetChannel], ['ETH', 'USDT'])
-    # # client.subscribe_public(Market.FUTURES, [BtFuturesTickerChannel])
-    # # client.subscribe_public(Market.FUTURES, [BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR], [symbol, symbol_eth])
+    client.subscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
+    client.subscribe_private(Market.FUTURES, [BtFuturesTPrivateAssetChannel], ['ETH', 'USDT'])
+    client.subscribe_public(Market.FUTURES, [BtFuturesTickerChannel])
+    client.subscribe_public(Market.FUTURES, [BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR,
+                                             BtFuturesSocketDepthChannels.DEPTH_CHANNEL_5LEVEL], [symbol])
+    # client.subscribe_public(Market.FUTURES, [BtFuturesSocketDepthChannels.DEPTH_CHANNEL_5LEVEL], symbols=[symbol])
     #
     # client.start_websockets(Market.FUTURES, on_message=lambda message: print(f' {message}'))
-    #
-    # input("Press any key")
+    # client.subscribe_public(Market.SPOT, [BtSpotSocketKlineChannels.K_LINE_CHANNEL_1HOUR,
+    #                                       BtSpotSocketDepthChannels.DEPTH_CHANNEL_5LEVEL,
+    #                                       BtSpotTradeChannel,
+    #                                       BtSpotTickerChannel],
+    #                         symbols=[symbol_spot])
+    # client.subscribe_private(Market.SPOT, [BtSpotOrderChannel], symbols=[symbol_spot])
+
+    client.start_websockets(Market.FUTURES, on_message=lambda message: print(f' {message}'))
+    client.wait_for_socket_connection(market=Market.FUTURES)
+
+    input("Press any key")
     # client.unsubscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
-    # client.unsubscribe_private(Market.FUTURES, [BtFuturesTPrivateAssetChannel], ['ETH', 'USDT'])
+    client.unsubscribe_private(Market.FUTURES, [BtFuturesSocketDepthChannels], [symbol])
     # client.stop_websockets(Market.FUTURES)
 
     # ------------- ORDER

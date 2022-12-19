@@ -2,7 +2,7 @@ import pandas as pd
 from hftcryptoapi import BitmartClient
 from hftcryptoapi.bitmart.data import *
 from datetime import datetime, timedelta
-from typing import Optional, List, Any, Union
+from typing import Optional, Union
 
 from bot_utils import to_dataframe, get_indicators, should_buy, should_sell, get_profit, BB_WINDOW
 from config import *

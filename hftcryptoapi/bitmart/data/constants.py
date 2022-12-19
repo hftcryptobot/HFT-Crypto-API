@@ -4,6 +4,7 @@
 
 from enum import Enum, EnumMeta, unique
 
+
 class MetaEnum(EnumMeta):
     def __contains__(cls, item):
         try:
@@ -279,6 +280,9 @@ class BtFuturesSocketDepthChannels(str, Enum):
     DEPTH_CHANNEL_50LEVEL = "futures/depth50"
 
 
+BtSpotTickerChannel = "spot/ticker"
+BtSpotTradeChannel = "spot/trade"
+BtSpotOrderChannel = "spot/user/order"
 BtFuturesTickerChannel = "futures/ticker"
 BtFuturesTPrivatePositionChannel = "futures/position"
 BtFuturesTPrivateAssetChannel = "futures/asset"
