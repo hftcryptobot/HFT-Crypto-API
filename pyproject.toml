@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 [project]
 name = "HFT-Crypto-API"
-version = "1.0.4"
+version = "1.0.5"
 description = "Bitmarket REST/Websocket Api implementation"
 readme = "README.md"
 authors = [{ name = "HFT-Crypto-API", email = "acidpictures@gmail.com" }]
