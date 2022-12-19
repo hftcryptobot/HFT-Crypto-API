@@ -255,4 +255,4 @@ futures_open_interest = client.get_futures_open_interest(symbol)
 
 # ChangeLog
 
-19.12.2022 Version 1.0.4
+19.12.2022 Version 1.0.5
