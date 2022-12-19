@@ -10,32 +10,56 @@ if __name__ == '__main__':
     to_time = datetime.now()
     from_time = to_time - timedelta(days=10)
     symbol = "BTCUSDT"
+    symbol_spot = "BTC_USDT"
     symbol_eth = "ETHUSDT"
     client = Bitmart.BitmartClient(api_key, secret_key, memo)
-    items = client.get_service_status()
-    print(items)
-    # print(client.get_futures_contracts_details())
-    # print(client.get_spot_ticker_details("BTC_USDT"))
-    # print(client.get_spot_trading_pair_detail("ETH_USDT"))
-    # [print(b) for b in client.get_account_balance(market=Market.FUTURES).currencies]
-    # print(client.get_order_history(symbol=symbol_eth, market=Market.FUTURES))
-    # print(client.get_list_of_trading_pairs())
-    # print(client.get_symbol_kline(symbol=symbol, tf=TimeFrame.tf_1h, market=Market.FUTURES,
-    #                               from_time=from_time, to_time=to_time))
+    # bt_status = client.get_service_status()
+    # items = client.get_system_time()
+    # currency_list = client.get_currency_list()
+    # trading_pairs = client.get_list_of_trading_pairs()
+    # symbols_details = client.get_spot_symbols_details()
+    # contracts_details = client.get_futures_contracts_details()
+    # symbol_details = client.get_spot_ticker_details(symbol_spot)
+    # kline_steps = client.get_kline_steps() # Not used
     # print(client.get_symbol_kline(symbol="BTC_USDT", tf=TimeFrame.tf_1h, market=Market.SPOT,
     #                               from_time=from_time, to_time=to_time))
-    # print(client.get_futures_position_details(symbol_eth))
+    # print(client.get_symbol_kline(symbol=symbol, tf=TimeFrame.tf_1h, market=Market.FUTURES,
+    #                               from_time=from_time, to_time=to_time))
+    # bt_trades = client.get_symbol_recent_trades(symbol_spot, N=100)
+    # depth_futures = client.get_symbol_depth(symbol=symbol_spot, precision=6, size=50, market=Market.SPOT)
+    # depth_spot = client.get_symbol_depth(symbol=symbol, precision=6, size=50, market=Market.FUTURES)
+    # futures_open_interest = client.get_futures_open_interest(symbol)
+    # funding_rate = client.get_futures_funding_rate(symbol)
+    # [print(b) for b in client.get_account_balance(market=Market.FUTURES).items]
+    # [print(b) for b in client.get_account_balance(market=Market.SPOT_MARGIN).items]
+    # fee_rate = client.get_spot_user_fee_rate()
+    # bt_trade_fee = client.get_spot_trade_fee_rate(symbol_spot)
+
+    # order = client.submit_order(market=Market.SPOT, symbol="ETH_USDT", side=SpotSide.BUY, size=0.1, price=70)
+    # order = client.update_order_details(order)
+    # client.cancel_order(order)
+    # # OR
+    # # client.cancel_order_by_id(order.symbol, order_id=order.order_id, market=Market.SPOT)
+    # client.cancel_all_orders(symbol=symbol_spot, market=Market.SPOT, side=SpotSide.BUY)
+    #
+    # history = client.get_order_history(symbol=symbol_eth, market=Market.FUTURES)
+    # positions = client.get_futures_position_details(symbol_eth)
+    #
     # print(client.get_symbol_recent_trades("BTC_USDT"))
     #
 
     # ------------- WEB SOCKETS
     # client.subscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
     # client.subscribe_private(Market.FUTURES, [BtFuturesTPrivateAssetChannel], ['ETH', 'USDT'])
-    # client.subscribe_public(Market.FUTURES, [BtFuturesTickerChannel])
-    # client.subscribe_public(Market.FUTURES, [BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR], [symbol, symbol_eth])
-
+    # # client.subscribe_public(Market.FUTURES, [BtFuturesTickerChannel])
+    # # client.subscribe_public(Market.FUTURES, [BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR], [symbol, symbol_eth])
+    #
     # client.start_websockets(Market.FUTURES, on_message=lambda message: print(f' {message}'))
-    # input("PRESSS")
+    #
+    # input("Press any key")
+    # client.unsubscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
+    # client.unsubscribe_private(Market.FUTURES, [BtFuturesTPrivateAssetChannel], ['ETH', 'USDT'])
+    # client.stop_websockets(Market.FUTURES)
 
     # ------------- ORDER
     # order = client.submit_order(market=Market.SPOT, symbol="ETH_USDT", side=SpotSide.BUY, size=0.1, price=70)

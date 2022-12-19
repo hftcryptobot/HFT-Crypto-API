@@ -35,11 +35,21 @@ class BitmartWs(object):
                     params.append(f'{c}:{s}')
         return params
 
-    def subscribe(self, channels: List[str], symbols: Optional[List[str]] = None):
+    def _mange_socket_subscriptions(self, channels: List[str], symbols: Optional[List[str]] = None,
+                                    subscribe: bool=True):
         params = self._get_subscription_list(channels, symbols)
         self.params += params
         if self.is_connected:
-            asyncio.run(self._subscribe(params))
+            if subscribe:
+                asyncio.run(self._subscribe(params))
+            else:
+                asyncio.run(self._unsubscribe(params))
+
+    def subscribe(self, channels: List[str], symbols: Optional[List[str]] = None):
+        self._mange_socket_subscriptions(channels, symbols, True)
+
+    def unsubscribe(self, channels: List[str], symbols: Optional[List[str]] = None):
+        self._mange_socket_subscriptions(channels, symbols, False)
 
     def _run_sync(self):
         asyncio.run(self._socket_loop())
@@ -147,6 +157,9 @@ class BitmartWs(object):
 
     async def _subscribe(self, params):
         await self.ws.send(json.dumps({"action": "subscribe", "args": params}))
+
+    async def _unsubscribe(self, params):
+        await self.ws.send(json.dumps({"action": "unsubscribe", "args": params}))
 
     async def _socket_loop(self):
         asyncio.set_event_loop(self.loop)

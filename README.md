@@ -14,168 +14,146 @@ Python module for Bitmart SDK
 
 Initialise an instance of Bitmart client:
 ```
-from hftcryptoapi import BrokerClient
+from hftcryptoapi.bitmart import Bitmart
 
 api_key = ""
 secret_key = ""
 memo = ""
 
-broker_client  = BrokerClient(api_key, secret_key, memo, exchange=Exchange.BITMART)
+client = Bitmart(api_key, secret_key, memo, exchange=Exchange.BITMART)
 ```
 
 ## System Status
-Service calls to check Bitmart API service status. Initate a new Bitmart service instance to call methods.
-```
-form hftcryptoapi import BitmartService
-```
 - Get System Time, returns system time in datetime format.
 ```
-bitmart_service = BitmartService()
-bt_time = bitmart_service.get_system_time()
+bt_time = client.get_system_time()
 ```
 - Get System Service Status, returns system status
 ```
-bitmart_service = BitmartService()
-bt_staus = bitmart_service.get_service_status()
+bt_staus = client.get_service_status()
 ```
 
 ## Public Market Data
 Functions to get info from spot market public API.
-Functions are wrapped in class MarketDataAgent and return object (or arrays) as defined in description.
-```
-from hftcryptoapi import MarketDataAgent
-```
 - Get Currency List
 ```
-market_agent = MarketDataAgent(exchange=Exchange.BITMART)
-currency_list = market_agent.get_currency_list()
+currency_list = client.get_currency_list()
 ```
 
 -  Get List of Trading Pairs, return a list of all trading pairs
 ```
-market_agent = MarketDataAgent(exchange=Exchange.BITMART)
-[currency_list] = market_agent.get_list_of_trading_pairs()
+trading_pairs = client.get_list_of_trading_pairs()
 ```
-- Get List of Trading Pair Details, returns currency details as Currency  object
+- Get List of Spot Symbol Details
 ```
-market_agent = MarketDataAgent(exchange=Exchange.BITMART)
-currency_details = market_agent.get_traiding_pair_detail()
+ symbols_details = client.get_spot_symbols_details()
 ```
 
-- Get Ticker of All Pairs (V2), returns list of currency details as a Currency object
+- Get Ticker details by Symbol
 ```
-market_agent = MarketDataAgent(exchange=Exchange.BITMART)
-[currency_details] = market_agent.get_all_trading_pair_details()
-```
-
-- Get K-Line Step, return klines as list
-```
-market_agent = MarketDataAgent(exchange=Exchange.BITMART)
-k_lines = market_agent.get_kline_steps()
+    symbol_details = client.get_spot_ticker_details("BTC_USDT")
 ```
 
 - Get K-Line, return Kline object for specified symbol and time period for SPOT and FUTURES markets
 ```
-market_agent = MarketDataAgent(exchange=Exchange.BITMART)
-symbol_klines = market_agent.get_symbol_kline(symbol, fromTime, toTime, step, market = Market.SPOT)
+symbol_klines = client.get_symbol_kline(symbol, fromTime, toTime, step, market = Market.SPOT)
 ```
 
 - Get Depth
 Returns [buys], [sells] wrapped in SportDepth or FuturesDepth object, depends on market type (Market.SPOT or Market.FUTURES)
 ```
-market_agent = MarketDataAgent(exchange=Exchange.BITMART)
-symbol_depth = market_agent.get_symbol_depth(symbol, precision, size)
+symbol_depth = client.get_symbol_depth(symbol, precision, size, market=Market.SPOT)
 ```
 
 - Get Recent Trades, returns Trade object for specified symbol and number of trades (by default: 50)
 ```
-market_agent = MarketDataAgent(exchange=Exchange.BITMART)
-bt_trades = market_agent.get_symbol_recent_trades(symbol, N)
-```
-
-- Get Futures Openinterest
-```
-market_agent = MarketDataAgent(exchange=Exchange.BITMART)
-futures_open_interest = market_agent.get_open_interest(Currency:object, market=Market.FUTURES)
-```
-
-- Get Current Funding Rate for futures
-```
-market_agent = MarketDataAgent(exchange=Exchange.BITMART)
-bt_trades = market_agent.get_current_funding_rate(Currency:object, market=Market.FUTURES)
+bt_trades = client.get_symbol_recent_trades(symbol, N)
 ```
 
 
 ## Funding Account Data
-Set of functions to manage used account:
-```
-from hftcryptoapi import BrokerClient
-```
 -  Get Account Balance, a unified method for all types of markets (SPOT, MARGIN, FUTURES). Market should be defined. Returns list of currencies/positions with attributes unique for each market:
 ```
-broker_client  = BrokerClient(...)
-spot_currencies = broker_client.get_acount_balance(symbol, market=Market.SPOT)
-spotmargin_currencies = broker_client.get_acount_balance(symbol, market=Market.SPOT_MARGIN)
-future_contracts = broker_client.get_acount_balance(symbol, market=Market.FUTURES)
+client.get_account_balance(market=Market.FUTURES)
+[print(b) for b in client.get_account_balance(market=Market.SPOT).items]
 ```
 
-- Get Basic Fee Rate, return account user fee wrapped in Fee object
+- Get User Fee Rate
 ```
-broker_client  = BrokerClient(...)
-bt_fee = broker_client.get_basic_fee_rate()
+fee_rate = client.get_spot_user_fee_rate()
 ```
-- Get Actual Trade Fee Rate, return trade fee rate for specified symbol wrapped in TradeFee object
+- Get Actual Trade Fee Rate
 ```
-broker_client  = BrokerClient(...)
-bt_trade_fee = broker_client.get_trade_fee_rate(symbol)
+bt_trade_fee = client.get_trade_fee_rate(symbol)
 ```
 
 
-## Spot /Margin Trading
+## Spot/Margin Trading
 - Place Spot Order (V2)
 ```
-broker_client  = BrokerClient(...)
-spot_order = broker_client.create_order(symbol, side, type, market=Market.SPOT)
-order_id = broker_client.submit_order(spot_order)
+ order = client.submit_order(market=Market.SPOT, symbol=symbol, side=SpotSide.BUY, size=0.1, price=70)
 ```
 
 - Place Margin Order
 ```
-broker_client  = BrokerClient(...)
-margin_order = broker_client.create_order(symbol, side, type, market=Market.SPOT_MARGIN)
-order_id = broker_client.submit_order(margin_order)
+ order = client.submit_order(market=Market.SPOT_MARGIN, symbol=symbol, side=SpotSide.BUY, size=0.1, price=70)
 ```
-- Cancel an Order (V3), cancel order in the account manager specified by order ID
+- Cancel an Order (V3)
 ```
-broker_client.cancel_order(order)
+ client.cancel_order(order)
+ # OR
+ client.cancel_order_by_id(order.symbol, order_id=order.order_id, market=Market.SPOT)
+
 ```
-- Cancel All Orders, cancels all orders in the account manager
+- Cancel All Orders
 ```
-broker_client.cancel_all_orders(symbol, side, market=Market.SPOT)
-broker_client.cancel_all_orders(symbol, side, market=Market.FUTURES)
+ client.cancel_all_orders(symbol=symbol_spot, market=Market.SPOT, side=SpotSide.BUY)
 ```
-- Get Order Detail (V2), gets order details for specified order object
+- Get Order Detail (V2), get/update order details
 ```
-bt_order_with_details = broker_client.get_order_details(order:Order)
-```
-- Get User Order History (V3), return order histore for user account, return list of order objects
-```
-[all_orders] = broker_client .get_order_history(symbol, status)
+ order = get_order_details(symbol, order_id, market)
+ order = client.update_order_details(order)
 ```
 
-# USD-M Futures
+- Get User Order History (V3), return list of order objects
+```
+history = client.get_order_history(symbol=symbol_eth, market=Market.SPOT)
+```
+
+# Futures
 
 ## Basic Information
 To access methods for Futures account/market methods should have a flag Market.FUTURES passed to.
 
 ## Futures Market Data
-- Get Contract Details, create contract object for Futures market (contract)
+- Get Futures Open Interest
 ```
-broker_client  = BrokerClient(...)
-futures_contract = broker_client .get_contract(symbol, side, type, market=Market.FUTURES)
+futures_open_interest = client.get_futures_open_interest(symbol)
+```
+
+- Get Current Funding Rate for futures
+```
+ funding_rate = client.get_futures_funding_rate(symbol)
+```
+
+- Get List of Futures Contract Details
+```
+ contracts_details = client.get_futures_contracts_details()
 ```
 
 ## Futures Trading
+
+- Get Futures Position details for a specified contract
+```
+ client.get_futures_position_details(symbol)
+```
+- Close Futures Position
+```
+ client.close_futures_position(symbol=symbol, position_side=Position.SHORT, open_type=OrderOpenType.CROSS)
+```
+
+- Get Account Balance - see spot description
+
 - Submit Order - see spot description
 
 - Cancel Order - see spot description
@@ -186,18 +164,41 @@ futures_contract = broker_client .get_contract(symbol, side, type, market=Market
 
 - Get Order History - see spot description
 
-- Get Current Position Detail - see spot description
+## WebSockets
 
-
-## WebSocket Subscription
-
-- Get Websocket Data, returns objects from websocket subscription  
+- Subscribe to one or many WebSocket events  
 ```
-callback implementation
+ # list of channels for list of symbols
+ client.subscribe_public(market=Market.FUTURES, symbols=[symbol],
+                                     channels=[BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR])
+ # common listener for all symbols                                    
+ client.subscribe_private(market=Market.FUTURES, channels=[BtFuturesTPrivatePositionChannel])
 ```
 
-## Error Codes
-Error code has be taken from API web-page and implemented into Error objects.
+- Unsubscribe to one or many WebSocket events  
+```
+ # list of channels for list of symbols
+ client.unsubscribe_public(market=Market.FUTURES, symbols=[symbol],
+                                     channels=[BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR])
+ # common listener for all symbols                                    
+ client.unsubscribe_private(market=Market.FUTURES, channels=[BtFuturesTPrivatePositionChannel])
+```
+
+- Start WebSocket listener for market type 
+```
+ def _on_message(self, msg: Union[WebSocketKline, WebSocketPositionFutures]):
+     if type(msg) is WebSocketKline:
+         # ...
+     else:
+         # ..
+         
+ client.start_websockets(market=Market.FUTURES, on_message=_on_message)
+```
+
+- Stop and disconnect from WebSockets 
+```
+ client.stop_websockets(Market.FUTURES)
+```
 
 # ChangeLog
-25.11.2022 Version 0.1
+19.12.2022 Version 1.0.4
