@@ -5,6 +5,7 @@ from typing import Optional, Union
 from hftcryptoapi.bitmart.exceptions import *
 from typing import List
 
+
 class BitmartService:
     def __init__(self, title, service_type, status, start_time, end_time):
         self.title = title
@@ -45,9 +46,14 @@ class BitmartOrder(object):
         self.order_mode = OrderMode.SPOT
         self.update_time = None
         self.unfilled_volume = None
-
+        # futures
+        self.leverage = None
+        self.open_type = None
+        param = {"symbol": self.symbol,
+                 "side": self.side.value,
+                 "type": self.order_type.value}
         if market == Market.FUTURES:
-            if side == SpotSide.BUY or side == SpotSide.SELL:
+            if side is SpotSide:
                 raise RequestException("Wrong side for futures market")
 
             self.leverage = leverage
@@ -55,9 +61,7 @@ class BitmartOrder(object):
             self.size = int(size)
 
             self.param = {
-                "symbol": self.symbol,
-                "side": self.side.value,
-                "type": self.order_type.value,
+                **param,
                 "leverage": str(self.leverage),
                 "open_type": self.open_type.value,
                 "size": size,
@@ -68,17 +72,15 @@ class BitmartOrder(object):
         elif market == Market.SPOT:
             if side in FuturesSide:
                 raise RequestException("Wrong side for spot market")
-            self.leverage = "Spot order: leverage is not applicable"
-            self.open_type = "Spot order: open type is not applicable"
+
+            param['client_order_id'] = self.client_order_id
+
             if order_type == OrderType.MARKET:
                 if side == SpotSide.SELL:
                     self.notional = ""
                     self.size = float(size)
                     self.param = {
-                        'symbol': self.symbol,
-                        'side': self.side.value,
-                        'type': self.order_type.value,
-                        'client_order_id': self.client_order_id,
+                        **param,
                         'size': str(self.size),
                         'notional': str(self.notional)
                     }
@@ -86,27 +88,22 @@ class BitmartOrder(object):
                     self.notional = size
                     self.size = ""
                     self.param = {
-                        'symbol': self.symbol,
-                        'side': self.side.value,
-                        'type': self.order_type.value,
-                        'client_order_id': self.client_order_id,
+                        **param,
                         'size': "",
-                        'notional': str(self.size)
+                        'notional': str(self.notional)
                     }
             elif order_type == OrderType.LIMIT:
                 self.notional = ""
                 self.size = float(size)
                 self.param = {
-                    'symbol': self.symbol,
-                    'side': self.side.value,
-                    'type': self.order_type.value,
-                    'client_order_id': self.client_order_id,
+                    **param,
                     'size': str(self.size),
                     'price': str(self.price)
                 }
 
     def __str__(self):
-        return f"{self.market.name}_{self.symbol}_{self.side} {self.size}@{self.price} id: {self.order_id}"
+        return f"{self.market.name}_{self.symbol}_{self.side.name} " \
+               f"{self.size or self.notional}@{self.price} id: {self.order_id}"
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -172,12 +169,13 @@ class OrderPosition(object):
         self.realized_value: float = float(realized_value)
 
 
-class MarginAccountSymbol(object):
+class MarginWalletItem(object):
     """
     Represents an open long or short position in an asset.
     Attributes:
 
     """
+
     def __init__(self, symbol: str):
         self.symbol: str = symbol
         self.risk_rate: float
@@ -186,6 +184,8 @@ class MarginAccountSymbol(object):
         self.sell_enabled: bool
         self.liquidate_price: float
         self.liquidate_rate: float
+        self.base = {}
+        self.quote = {}
 
 
 class BitmartCurrency(object):
@@ -304,7 +304,7 @@ class TickerSpotWebSocket(object):
 
 class BitmartWallet(object):
     def __init__(self, items):
-        self.items: List[WalletItem] = items
+        self.items: List[Union[WalletItem, MarginWalletItem]] = items
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)

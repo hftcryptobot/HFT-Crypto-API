@@ -154,7 +154,7 @@ class BitmartWs(object):
                     for line in str(message).splitlines():
                         self._on_message(json.loads(line))  # await
                 except Exception as e:
-                    logging.error(f"WS read error {e}")
+                    logging.info(f"WS read error {e}")
         except websockets.ConnectionClosedError as e:
             sleep_time = 3
             logging.warning(f"WS {self.market} Connection Error: {e}. Sleep {sleep_time}...")

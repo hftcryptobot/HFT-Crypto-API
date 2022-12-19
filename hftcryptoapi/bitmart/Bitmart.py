@@ -344,7 +344,7 @@ class BitmartClient(PyClient):
                           start_time: Optional[datetime] = None,
                           end_time: Optional[datetime] = None) -> List[BitmartOrder]:
 
-        order_objects = []
+        orders = []
         if market == Market.SPOT:
             param = {
                 'symbol': symbol,
@@ -357,8 +357,8 @@ class BitmartClient(PyClient):
                 price = order["price"]
                 bt_order = BitmartOrder(symbol, side, size, price, market=Market.SPOT)
                 bt_order.create_time = datetime.fromtimestamp(float(order["create_time"]))
-                bt_order.order_mode = OrderMode.SPOT if order["order_mode"] == "spot" else OrderMode.ISOLATED_MARGIN
-                bt_order.order_type = OrderType.LIMIT if order["type"] == "limit" else OrderType.MARKET
+                bt_order.order_mode = OrderMode(order["order_mode"])
+                bt_order.order_type = OrderType(order["type"])
                 bt_order.price_avg = order["price_avg"]
                 bt_order.order_id = order["order_id"]
                 bt_order.notional = order["notional"]
@@ -366,7 +366,7 @@ class BitmartClient(PyClient):
                 bt_order.filled_size = order["filled_size"]
                 bt_order.order_status = order["order_status"]
                 bt_order.client_order_id = order["client_order_id"]
-                order_objects.append(bt_order)
+                orders.append(bt_order)
         elif market == Market.FUTURES:
             param = {
                 'symbol': symbol,
@@ -385,9 +385,9 @@ class BitmartClient(PyClient):
                 bt_order.open_type = OrderOpenType(order["open_type"])
                 bt_order.price_avg = float(order["deal_avg_price"])
                 bt_order.create_time = order["create_time"]
-                order_objects.append(bt_order)
+                orders.append(bt_order)
 
-        return order_objects
+        return orders
 
     # Unified methods for trading
     def submit_order(self, symbol: str, side: Union[FuturesSide, SpotSide],
@@ -397,29 +397,19 @@ class BitmartClient(PyClient):
                      client_order_id: Optional[str] = None):
 
         bm_order = BitmartOrder(symbol, side, size, price, market, order_type, leverage, open_type, client_order_id)
-        if market == Market.SPOT or market == Market.SPOT_MARGIN:
-            if order_type == OrderType.LIMIT_MAKER:
-                raise NotImplemented
-            elif order_type == OrderType.IOC:
-                raise NotImplemented
-            if market == Market.SPOT:
-                response = self._request_with_params(POST, SPOT_PLACE_ORDER, bm_order.param, Auth.SIGNED)
-            else:  # market == Market.SPOT_MARGIN:
-                response = self._request_with_params(POST, SPOT_MARGIN_PLACE_ORDER, bm_order.param, Auth.SIGNED)
-            try:
-                bm_order.order_id = json.loads(response.content)['data']['order_id']
-            except:
-                raise APIException(response)
-
-            return bm_order
-        elif market == Market.FUTURES:
+        if market == Market.SPOT:
+            response = self._request_with_params(POST, SPOT_PLACE_ORDER, bm_order.param, Auth.SIGNED)
+        elif market == Market.SPOT_MARGIN:
+            response = self._request_with_params(POST, SPOT_MARGIN_PLACE_ORDER, bm_order.param, Auth.SIGNED)
+        else:  # market == Market.FUTURES:
             response = self._request_with_params(POST, FUTURES_SUBMIT_ORDER, bm_order.param, Auth.SIGNED)
-            try:
-                bm_order.order_id = json.loads(response.content)['data']['order_id']
-            except:
-                raise APIException(response)
 
-            return bm_order
+        try:
+            bm_order.order_id = json.loads(response.content)['data']['order_id']
+        except:
+            raise APIException(response)
+
+        return bm_order
 
     def get_futures_contracts_details(self) -> List[BitmartFutureContract]:
         response = self._request_with_params(GET, FUTURES_CONTRACT_DETAILS, params={})
@@ -465,13 +455,15 @@ class BitmartClient(PyClient):
         elif market == Market.SPOT_MARGIN:
             response = self._request_without_params(GET, ACCOUNT_MARGIN_DETAILS, Auth.KEYED)
             for ticker in json.loads(response.content)['data']['symbols']:
-                margin_acc_symbol = MarginAccountSymbol(symbol=ticker["symbol"])
+                margin_acc_symbol = MarginWalletItem(symbol=ticker["symbol"])
                 margin_acc_symbol.risk_rate = float(ticker["risk_rate"])
                 margin_acc_symbol.risk_level = int(ticker["risk_level"])
                 margin_acc_symbol.buy_enabled = ticker["buy_enabled"] == "true"
                 margin_acc_symbol.sell_enabled = ticker["sell_enabled"] == "true"
                 margin_acc_symbol.liquidate_price = float(ticker["liquidate_price"])
                 margin_acc_symbol.liquidate_rate = float(ticker["liquidate_rate"])
+                margin_acc_symbol.base = ticker['base']
+                margin_acc_symbol.quote = ticker['quote']
                 wallet_currencies.append(margin_acc_symbol)
 
         bitmart_wallet = BitmartWallet(wallet_currencies)
@@ -487,7 +479,7 @@ class BitmartClient(PyClient):
 
         result = False
         for p in open_positions:
-            if not is_cross and p.position_cross or is_cross and not p.position_cross:
+            if (not is_cross and p.position_cross) or (is_cross and not p.position_cross):
                 continue
 
             size = p.current_amount
