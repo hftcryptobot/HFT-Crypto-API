@@ -69,7 +69,7 @@ class BitmartOrder(object):
             if self.price is not None:
                 self.param['price'] = str(self.price)
 
-        elif market == Market.SPOT:
+        elif market in [Market.SPOT, Market.SPOT_MARGIN]:
             if side in FuturesSide:
                 raise RequestException("Wrong side for spot market")
 
@@ -103,7 +103,7 @@ class BitmartOrder(object):
 
     def __str__(self):
         return f"{self.market.name}_{self.symbol}_{self.side.name} " \
-               f"{self.size or self.notional}@{self.price} id: {self.order_id}"
+               f"{self.size or self.notional}@{self.price or self.price_avg} id: {self.order_id}"
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -400,3 +400,47 @@ class BitmartSpotSymbolDetails(object):
         self.min_buy_amount = float(min_buy_amount)
         self.min_sell_amount = float(min_sell_amount)
         self.trade_status = trade_status
+
+
+class BorrowRecord(object):
+    def __init__(self, borrow_id, symbol, currency,
+                 borrow_amount, daily_interest, hourly_interest, interest_amount, create_time, **kwargs):
+        self.borrow_id: str = borrow_id
+        self.currency: str = currency
+        self.symbol: str = symbol
+        self.borrow_amount = float(borrow_amount)
+        self.daily_interest = float(daily_interest)
+        self.hourly_interest = float(hourly_interest)
+        self.interest_amount = float(interest_amount or 0)
+        self.create_time = datetime.fromtimestamp(create_time / 1000)
+
+
+class RepayRecord(object):
+    def __init__(self, repay_id, repay_time, currency, repaid_amount, repaid_principal, repaid_interest, **kwargs):
+        self.repay_id: str = repay_id
+        self.repay_time: datetime = datetime.fromtimestamp(repay_time / 1000)
+        self.currency: str = currency
+        self.repaid_amount = float(repaid_amount)
+        self.repaid_principal = float(repaid_principal)
+        self.repaid_interest = float(repaid_interest)
+
+
+class BorrowingRateItem(object):
+    def __init__(self, currency: str, daily_interest, hourly_interest, max_borrow_amount, min_borrow_amount,
+                 borrowable_amount):
+
+        self.currency = currency
+        self.daily_interest = float(daily_interest)
+        self.hourly_interest = float(hourly_interest)
+        self.max_borrow_amount = float(max_borrow_amount)
+        self.min_borrow_amount = float(min_borrow_amount)
+        self.borrowable_amount = float(borrowable_amount)
+
+
+class BorrowingRateAndAmount(object):
+    def __init__(self, symbol, max_leverage, symbol_enabled, base, quote):
+        self.symbol: str = symbol
+        self.max_leverage: int = int(max_leverage)
+        self.symbol_enabled = bool(symbol_enabled)
+        self.base: BorrowingRateItem = BorrowingRateItem(**base)
+        self.quote: BorrowingRateItem = BorrowingRateItem(**quote)

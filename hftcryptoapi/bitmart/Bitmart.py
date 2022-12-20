@@ -5,6 +5,7 @@ from .ws_base import BitmartWs
 from typing import Callable
 from time import sleep
 
+
 class BitmartClient(PyClient):
 
     def __init__(self, api_key: Optional[str] = None, secret_key: Optional[str] = None, memo: Optional[str] = None,
@@ -277,7 +278,7 @@ class BitmartClient(PyClient):
             'symbol': order.symbol,
             'order_id': str(order.order_id),
         }
-        url = SPOT_CANCEL_ORDER if order.market == Market.SPOT else FUTURES_CANCEL_ORDER
+        url = FUTURES_CANCEL_ORDER if order.market == Market.FUTURES else SPOT_CANCEL_ORDER
         self._request_with_params(POST, url, param, Auth.SIGNED)
 
         return True
@@ -314,8 +315,7 @@ class BitmartClient(PyClient):
             order.size = float(data['deal_size'])
             order.create_time = datetime.fromtimestamp(int(data['create_time']) / 1000)
             order.update_time = datetime.fromtimestamp(int(data['update_time']) / 1000)
-
-        elif market == Market.SPOT:
+        else:
             response = self._request_with_params(GET, SPOT_GET_ORDER_DETAILS, param, Auth.KEYED)
             data = json.loads(response.content)['data']
             order.price = float(data['price'])
@@ -460,7 +460,7 @@ class BitmartClient(PyClient):
                 margin_acc_symbol.risk_level = int(ticker["risk_level"])
                 margin_acc_symbol.buy_enabled = ticker["buy_enabled"] == "true"
                 margin_acc_symbol.sell_enabled = ticker["sell_enabled"] == "true"
-                margin_acc_symbol.liquidate_price = float(ticker["liquidate_price"])
+                margin_acc_symbol.liquidate_price = float(ticker.get("liquidate_price", 0) or 0)
                 margin_acc_symbol.liquidate_rate = float(ticker["liquidate_rate"])
                 margin_acc_symbol.base = ticker['base']
                 margin_acc_symbol.quote = ticker['quote']
@@ -492,3 +492,63 @@ class BitmartClient(PyClient):
             result = True
 
         return result
+
+    def spot_margin_borrow(self, symbol: str, currency: str, amount: float) -> str:
+        response = self._request_with_params(POST, MARGIN_BORROW,
+                                             params=dict(symbol=symbol, currency=currency, amount=amount),
+                                             auth=Auth.SIGNED)
+        borrow_id = json.loads(response.content)['data']['borrow_id']
+
+        return borrow_id
+
+    def spot_margin_repay(self, symbol: str, currency: str, amount: float) -> str:
+        response = self._request_with_params(POST, MARING_REPAY,
+                                             params=dict(symbol=symbol, currency=currency, amount=amount),
+                                             auth=Auth.SIGNED)
+        repay_id = json.loads(response.content)['data']['repay_id']
+
+        return repay_id
+
+    def spot_margin_get_borrow_record(self, symbol: str, borrow_id: Optional[str] = None,
+                                      start_time: Optional[datetime] = None,
+                                      end_time: Optional[datetime] = None,
+                                      records_count: Optional[int] = None) -> List[BorrowRecord]:
+
+        params = dict(symbol=symbol)
+        if borrow_id is not None:
+            params["borrow_id"] = borrow_id
+        if start_time is not None:
+            params["start_time"] = int(datetime.timestamp(start_time))
+        if end_time is not None:
+            params["end_time"] = int(datetime.timestamp(end_time))
+        if records_count is not None:
+            params["N"] = records_count
+
+        response = self._request_with_params(GET, MARGIN_BORROW_RECORD, params=params, auth=Auth.KEYED)
+        return [BorrowRecord(**r) for r in json.loads(response.content)['data']['records']]
+
+    def spot_margin_get_repay_record(self, symbol: str, repay_id: Optional[str] = None,
+                                     currency: Optional[str] = None,
+                                     start_time: Optional[datetime] = None,
+                                     end_time: Optional[datetime] = None,
+                                     records_count: Optional[int] = None) -> List[RepayRecord]:
+
+        params = dict(symbol=symbol)
+        if repay_id is not None:
+            params["repay_id"] = repay_id
+        if currency is not None:
+            params["currency"] = currency
+        if start_time is not None:
+            params["start_time"] = int(datetime.timestamp(start_time))
+        if end_time is not None:
+            params["end_time"] = int(datetime.timestamp(end_time))
+        if records_count is not None:
+            params["N"] = records_count
+
+        response = self._request_with_params(GET, MARING_REPAYMENT_RECORD, params=params, auth=Auth.KEYED)
+        return [RepayRecord(**r) for r in json.loads(response.content)['data']['records']]
+
+    def spot_margin_borrowing_rate(self, symbol: str) -> List[BorrowingRateAndAmount]:
+        response = self._request_with_params(GET, MARGIN_TRADING_PAIR_BORROW_RATE_AND_AMOUNT,
+                                             params=dict(symbol=symbol), auth=Auth.KEYED)
+        return [BorrowingRateAndAmount(**r) for r in json.loads(response.content)['data']['symbols']]

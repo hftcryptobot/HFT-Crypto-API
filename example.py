@@ -4,9 +4,13 @@ from datetime import datetime, timedelta
 import time
 
 if __name__ == '__main__':
-    api_key = "11bcfe6d2d3a5f0016efc5108a1c64e678201b27"
-    secret_key = "953bb4129c221485d71c89cea38a0497e8ca8b36b18e0fdddbcdc45a7c27f35b"
-    memo = "artemtest"
+    # api_key = "11bcfe6d2d3a5f0016efc5108a1c64e678201b27"
+    # secret_key = "953bb4129c221485d71c89cea38a0497e8ca8b36b18e0fdddbcdc45a7c27f35b"
+    # memo = "artemtest"
+    api_key = "ff8a7fe83bd6d51ba2c7e4314574e4865b32be5c"
+    secret_key = "b5d6f14e0ec6d5b8eecc5e67a28a60f3886766e5660fb2bc2d305ff7df9efccd"
+    memo = "dasein"
+
     to_time = datetime.now()
     from_time = to_time - timedelta(days=10)
     symbol = "BTCUSDT"
@@ -33,6 +37,7 @@ if __name__ == '__main__':
     funding_rate = client.get_futures_funding_rate(symbol)
     [print(b) for b in client.get_account_balance(market=Market.FUTURES).items]
     [print(b) for b in client.get_account_balance(market=Market.SPOT).items]
+    [print(b) for b in client.get_account_balance(market=Market.SPOT_MARGIN).items]
     fee_rate = client.get_spot_user_fee_rate()
     bt_trade_fee = client.get_spot_trade_fee_rate(symbol_spot)
 
@@ -53,15 +58,18 @@ if __name__ == '__main__':
 
     client.start_websockets(Market.SPOT, on_message=lambda message: print(f' {message}'))
     client.wait_for_socket_connection(market=Market.FUTURES)
-    client.wait_for_socket_connection(market=Market.SPOT)
-    # input("Press any key")
-    # client.unsubscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
+    client.wait_for_socket_connection(market=Market.SPOT, is_public=False)
+    input("Press any key")
+    client.unsubscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
     client.unsubscribe_private(Market.FUTURES, [BtFuturesSocketDepthChannels], [symbol])
     client.stop_websockets(Market.FUTURES)
     client.stop_websockets(Market.SPOT)
-
     # ------------- ORDER
-    order = client.submit_order(market=Market.SPOT, symbol="ETH_USDT", side=SpotSide.BUY, size=0.1, price=70)
+    order = client.submit_order(market=Market.SPOT_MARGIN, symbol="BTC_USDT", side=SpotSide.BUY, size=0.005, price=1000)
+    order = client.submit_order(market=Market.SPOT_MARGIN, order_type=OrderType.MARKET,
+                                symbol="BTC_USDT", side=SpotSide.BUY, size=6, price=1000)
+    order = client.submit_order(market=Market.SPOT_MARGIN, order_type=OrderType.MARKET,
+                                symbol="BTC_USDT", side=SpotSide.SELL, size=6, price=1000)
     order = client.update_order_details(order)
     client.cancel_order(order)
     order = client.submit_order(market=Market.FUTURES, symbol="ETHUSDT", side=FuturesSide.BUY_OPEN_LONG,
@@ -84,4 +92,9 @@ if __name__ == '__main__':
     print(client.submit_order(market=Market.SPOT, symbol=symbol_spot, order_type=OrderType.MARKET,
                               side=SpotSide.SELL,
                               size=0.00050000))
-    # -------------
+    # ------------- MARGIN
+    rate = client.spot_margin_borrowing_rate(symbol_spot)
+    b_records = client.spot_margin_get_borrow_record(symbol_spot)
+    r_records = client.spot_margin_get_repay_record(symbol_spot)
+    client.spot_margin_borrow(symbol_spot, "BTC", 0.005)
+    client.spot_margin_repay(symbol_spot, "BTC", 0.005)

@@ -94,7 +94,8 @@ bt_trades = client.get_symbol_recent_trades(symbol, N)
   Returns list of currencies/positions with attributes unique for each market:
 
 ```
-client.get_account_balance(market=Market.FUTURES)
+result = client.get_account_balance(market=Market.FUTURES)
+result = client.get_account_balance(market=Market.SPOT_MARGIN)
 [print(b) for b in client.get_account_balance(market=Market.SPOT).items]
 ```
 
@@ -150,6 +151,38 @@ bt_trade_fee = client.get_trade_fee_rate(symbol)
 
 ```
 history = client.get_order_history(symbol=symbol_eth, market=Market.SPOT)
+```
+
+### Margin Loan
+
+- Get Trading Pair Borrowing Rate and Amount
+
+```
+ rate = client.spot_margin_borrowing_rate(symbol_spot)
+```
+
+- Get Borrow Record(Isolated)
+
+```
+ b_records = client.spot_margin_get_borrow_record(symbol_spot)
+```
+
+- Get Repayment Record(Isolated)
+
+```
+ r_records = client.spot_margin_get_repay_record(symbol_spot)
+```
+
+- Margin Borrow (Isolated)
+
+```
+ borrow_id = client.spot_margin_borrow(symbol_spot, "BTC", 0.005)
+```
+
+- Margin Repay (Isolated)
+
+```
+ repay_id = client.spot_margin_repay(symbol_spot, "BTC", 0.005)
 ```
 
 # Futures
@@ -254,5 +287,6 @@ futures_open_interest = client.get_futures_open_interest(symbol)
 ```
 
 # ChangeLog
+20.12.2022 Version 1.0.6 - Margin Loan implementation
 
 19.12.2022 Version 1.0.5
