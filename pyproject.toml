@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+[project]
+name = "HFT-Crypto-API"
+version = "1.0.6"
+description = "Bitmarket REST/Websocket Api implementation"
+readme = "README.md"
+authors = [{ name = "HFT-Crypto-API", email = "acidpictures@gmail.com" }]
+license = { file = "LICENSE" }
+classifiers = ["Programming Language :: Python :: 3"]
+dependencies = [
+    "requests==2.23.0",
+    "urllib3==1.21.1",
+    "utils==1.0.1",
+    "websockets>=9.1",
+    "pytest==6.2.1",
+    "pydantic==1.10.2"
+]
+[project.urls]
+Homepage = "https://github.com/hftcryptobot/HFT-Crypto-API"
+

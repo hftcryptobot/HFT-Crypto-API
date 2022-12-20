@@ -1,0 +1,3 @@
+API_KEY = ""
+SECRET_KEY = ""
+MEMO = ""
