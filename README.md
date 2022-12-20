@@ -242,16 +242,6 @@ futures_open_interest = client.get_futures_open_interest(symbol)
 - Subscribe to one or many WebSocket events
 
 ```
- # list of channels for list of symbols
- client.subscribe_public(market=Market.FUTURES, symbols=[symbol],
-                                     channels=[BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR])
- # common listener for all symbols                                    
- client.subscribe_private(market=Market.FUTURES, channels=[BtFuturesTPrivatePositionChannel])
-```
-
-- Unsubscribe to one or many WebSocket events
-
-```
  # SPOT
  client.subscribe_public(Market.SPOT, [BtSpotSocketKlineChannels.K_LINE_CHANNEL_1HOUR,
                                       BtSpotSocketDepthChannels.DEPTH_CHANNEL_5LEVEL,
@@ -266,6 +256,13 @@ futures_open_interest = client.get_futures_open_interest(symbol)
                                          BtFuturesSocketDepthChannels.DEPTH_CHANNEL_5LEVEL], [symbol])
  client.subscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
  client.subscribe_private(Market.FUTURES, [BtFuturesTPrivateAssetChannel], ['ETH', 'USDT'])                                         
+```
+
+- Unsubscribe from one or many WebSocket events
+
+```
+    client.unsubscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
+    client.unsubscribe_private(Market.FUTURES, [BtFuturesSocketDepthChannels], [symbol])
 ```
 
 - Start WebSocket listener for market type
