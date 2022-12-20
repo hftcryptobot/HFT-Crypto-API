@@ -4,12 +4,10 @@ from datetime import datetime, timedelta
 import time
 
 if __name__ == '__main__':
-    # api_key = "11bcfe6d2d3a5f0016efc5108a1c64e678201b27"
-    # secret_key = "953bb4129c221485d71c89cea38a0497e8ca8b36b18e0fdddbcdc45a7c27f35b"
-    # memo = "artemtest"
-    api_key = "ff8a7fe83bd6d51ba2c7e4314574e4865b32be5c"
-    secret_key = "b5d6f14e0ec6d5b8eecc5e67a28a60f3886766e5660fb2bc2d305ff7df9efccd"
-    memo = "dasein"
+
+    api_key = ""
+    secret_key = ""
+    memo = ""
 
     to_time = datetime.now()
     from_time = to_time - timedelta(days=10)
