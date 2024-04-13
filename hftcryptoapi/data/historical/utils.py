@@ -66,7 +66,7 @@ def get_data_from_response(response: HTTPResult) -> RawData:
 
 
 def format_dataset_response(
-    response: HTTPResult, data_by_symbol: defaultdict
+        response: HTTPResult, data_by_symbol: defaultdict
 ) -> defaultdict:
     """
     Formats data from BarSet, TradeSet endpoints. Uses defaultdict for simpler syntax when
@@ -103,7 +103,7 @@ def format_dataset_response(
 
 
 def format_latest_data_response(
-    response: HTTPResult, data_by_symbol: defaultdict
+        response: HTTPResult, data_by_symbol: defaultdict
 ) -> defaultdict:
     """
     Parses data from the "latest" endpoints and populates the data_by_symbol dict. (latest_quote, latest_bar). Also includes crypto/snapshots endpoint,
@@ -125,7 +125,7 @@ def format_latest_data_response(
 
 
 def format_snapshot_data(
-    response: HTTPResult, data_by_symbol: defaultdict
+        response: HTTPResult, data_by_symbol: defaultdict
 ) -> defaultdict:
     """
     Formats data from stocks/snapshot endpoint. Exists because v2/stocks/snapshot

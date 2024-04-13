@@ -285,6 +285,7 @@ futures_open_interest = client.get_futures_open_interest(symbol)
 ```
 
 # ChangeLog
+
 20.12.2022 Version 1.0.6 - Margin Loan implementation
 
 19.12.2022 Version 1.0.5

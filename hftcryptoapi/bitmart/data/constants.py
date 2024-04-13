@@ -11,7 +11,7 @@ class MetaEnum(EnumMeta):
             cls(item)
         except ValueError:
             return False
-        return True   
+        return True
 
 
 """ Base urls for API endpoints """
@@ -116,16 +116,17 @@ FUTURES_CANCEL_ORDER = "/contract/private/cancel-order"
 FUTURES_CANCEL_ALL_ORDERS = "/contract/private/cancel-orders"
 
 
-
 @unique
 class Auth(int, Enum):
     NONE = 1
     KEYED = 2
     SIGNED = 3
 
+
 class Sort(str, Enum):
     ASC = "asc"
     DESC = "desc"
+
 
 @unique
 class Exchange(int, Enum):
@@ -133,11 +134,13 @@ class Exchange(int, Enum):
     BINANCE = 2
     HUOBI = 3
 
+
 @unique
 class ServiceStatus(int, Enum):
     WAITING = 0
     WORKING = 1
     COMPLETED = 2
+
 
 @unique
 class TimeFrame(int, Enum):
@@ -148,8 +151,9 @@ class TimeFrame(int, Enum):
     tf_1h = 60
     tf_2h = 120
     tf_4h = 240
-    tf_1d = 60*24
-    tf_1w = 60*24*7
+    tf_1d = 60 * 24
+    tf_1w = 60 * 24 * 7
+
 
 @unique
 class Market(str, Enum):
@@ -157,27 +161,32 @@ class Market(str, Enum):
     FUTURES = "futures"
     SPOT_MARGIN = "margin"
 
+
 @unique
 class OrderMode(str, Enum):
     SPOT = "spot"
     ISOLATED_MARGIN = "iso_margin"
 
+
 @unique
 class OrderType(str, Enum):
     LIMIT = "limit"
     MARKET = "market"
-    LIMIT_MAKER = "limit_maker" # only for spot market
-    IOC = "ioc" # only for spot market
+    LIMIT_MAKER = "limit_maker"  # only for spot market
+    IOC = "ioc"  # only for spot market
+
 
 @unique
 class SpotSide(str, Enum):
     BUY = "buy"
     SELL = "sell"
 
+
 @unique
 class Position(int, Enum):
     LONG = 1
     SHORT = 2
+
 
 @unique
 class FuturesSide(int, Enum, metaclass=MetaEnum):
@@ -185,6 +194,7 @@ class FuturesSide(int, Enum, metaclass=MetaEnum):
     BUY_CLOSE_SHORT = 2
     SELL_CLOSE_LONG = 3
     SELL_OPEN_SHORT = 4
+
 
 @unique
 class OrderOpenType(str, Enum):
@@ -203,10 +213,12 @@ class OrderState(int, Enum):
     MIX_6_8_11 = 10
     PARTIALLY_FILLED_AND_CANCELED = 11
 
+
 @unique
 class ExecType(str, Enum):
     MAKER = "M"
     TAKER = "T"
+
 
 @unique
 class TradeOrderType(int, Enum):
@@ -221,16 +233,19 @@ class WayType(int, Enum):
     ASK = 1
     BID = 2
 
+
 @unique
 class FuturesContractType(int, Enum):
     PERPETUAL = 1
     FUTURES = 2
+
 
 @unique
 class BtWebSocket(str, Enum):
     """Base urls for websocket endpoints"""
     PUBLIC = "wss://ws-manager-compress.bitmart.com/api?protocol=1.1"
     PRIVATE = "wss://ws-manager-compress.bitmart.com/user?protocol=1.1"
+
 
 @unique
 class BtSocketOperation(str, Enum, metaclass=MetaEnum):
@@ -255,6 +270,7 @@ class BtSpotSocketKlineChannels(str, Enum):
     K_LINE_CHANNEL_1WEEK = "spot/kline1W"
     K_LINE_CHANNEL_1MONTH = "spot/kline1M"
 
+
 @unique
 class BtFuturesSocketKlineChannels(str, Enum):
     K_LINE_CHANNEL_1MIN = "futures/klineBin1m"
@@ -267,11 +283,13 @@ class BtFuturesSocketKlineChannels(str, Enum):
     K_LINE_CHANNEL_1DAY = "futures/klineBin1d"
     K_LINE_CHANNEL_1WEEK = "futures/klineBin1w"
 
+
 @unique
 class BtSpotSocketDepthChannels(str, Enum):
     DEPTH_CHANNEL_5LEVEL = "spot/depth5"
     DEPTH_CHANNEL_20LEVEL = "spot/dept20"
     DEPTH_CHANNEL_50LEVEL = "spot/depth50"
+
 
 @unique
 class BtFuturesSocketDepthChannels(str, Enum):
@@ -286,4 +304,3 @@ BtSpotOrderChannel = "spot/user/order"
 BtFuturesTickerChannel = "futures/ticker"
 BtFuturesTPrivatePositionChannel = "futures/position"
 BtFuturesTPrivateAssetChannel = "futures/asset"
-

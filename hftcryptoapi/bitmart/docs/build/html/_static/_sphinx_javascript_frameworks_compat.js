@@ -20,7 +20,7 @@ $u = _.noConflict();
  *
  * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent#Decoding_query_parameters_from_a_URL
  */
-jQuery.urldecode = function(x) {
+jQuery.urldecode = function (x) {
     if (!x) {
         return x
     }
@@ -37,7 +37,7 @@ jQuery.urlencode = encodeURIComponent;
  * current request. Multiple values per key are supported,
  * it will always return arrays of strings for the value parts.
  */
-jQuery.getQueryParameters = function(s) {
+jQuery.getQueryParameters = function (s) {
     if (typeof s === 'undefined')
         s = document.location.search;
     var parts = s.substr(s.indexOf('?') + 1).split('&');
@@ -58,7 +58,7 @@ jQuery.getQueryParameters = function(s) {
  * highlight a given string on a jquery object by wrapping it in
  * span elements with the given class name.
  */
-jQuery.fn.highlightText = function(text, className) {
+jQuery.fn.highlightText = function (text, className) {
     function highlight(node, addItems) {
         if (node.nodeType === 3) {
             var val = node.nodeValue;
@@ -89,18 +89,19 @@ jQuery.fn.highlightText = function(text, className) {
                     rect.setAttribute('class', className);
                     addItems.push({
                         "parent": node.parentNode,
-                        "target": rect});
+                        "target": rect
+                    });
                 }
             }
-        }
-        else if (!jQuery(node).is("button, select, textarea")) {
-            jQuery.each(node.childNodes, function() {
+        } else if (!jQuery(node).is("button, select, textarea")) {
+            jQuery.each(node.childNodes, function () {
                 highlight(this, addItems);
             });
         }
     }
+
     var addItems = [];
-    var result = this.each(function() {
+    var result = this.each(function () {
         highlight(this, addItems);
     });
     for (var i = 0; i < addItems.length; ++i) {
@@ -114,7 +115,7 @@ jQuery.fn.highlightText = function(text, className) {
  * This will be supported until firefox bug is fixed.
  */
 if (!jQuery.browser) {
-    jQuery.uaMatch = function(ua) {
+    jQuery.uaMatch = function (ua) {
         ua = ua.toLowerCase();
 
         var match = /(chrome)[ \/]([\w.]+)/.exec(ua) ||
@@ -125,8 +126,8 @@ if (!jQuery.browser) {
             [];
 
         return {
-            browser: match[ 1 ] || "",
-            version: match[ 2 ] || "0"
+            browser: match[1] || "",
+            version: match[2] || "0"
         };
     };
     jQuery.browser = {};

@@ -74,7 +74,7 @@ class WebSocketTrade:
         self.side = side
         self.price = float(price)
         self.size = float(size)
-        self.date_time = datetime.fromtimestamp(s_t/1000)
+        self.date_time = datetime.fromtimestamp(s_t / 1000)
 
 
 class WebSocketLogin:
@@ -87,7 +87,6 @@ class WebSocketOrderProgress:
                  margin_trading,
                  trade_order_type, state, last_fill_price, last_fill_count, last_fill_time, exec_type, detail_id,
                  client_order_id):
-
         self.symbol = symbol
         self.order_id = order_id
         self.price = float(price)

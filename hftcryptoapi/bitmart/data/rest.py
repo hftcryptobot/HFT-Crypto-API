@@ -428,7 +428,6 @@ class RepayRecord(object):
 class BorrowingRateItem(object):
     def __init__(self, currency: str, daily_interest, hourly_interest, max_borrow_amount, min_borrow_amount,
                  borrowable_amount):
-
         self.currency = currency
         self.daily_interest = float(daily_interest)
         self.hourly_interest = float(hourly_interest)

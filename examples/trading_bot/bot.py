@@ -19,7 +19,7 @@ class TradingBot(object):
 
     def preload(self):
         to_time = datetime.now()
-        from_time = to_time - timedelta(hours=BB_WINDOW+1)
+        from_time = to_time - timedelta(hours=BB_WINDOW + 1)
         klines = self.client.get_symbol_kline(symbol=self.symbol, market=Market.FUTURES, tf=TimeFrame.tf_1h,
                                               from_time=from_time, to_time=to_time)
 

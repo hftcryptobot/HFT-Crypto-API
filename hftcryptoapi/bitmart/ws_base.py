@@ -37,7 +37,7 @@ class BitmartWs(object):
         return params
 
     def _mange_socket_subscriptions(self, channels: List[str], symbols: Optional[List[str]] = None,
-                                    subscribe: bool=True):
+                                    subscribe: bool = True):
         params = self._get_subscription_list(channels, symbols)
         self.params += params
         if self.is_connected:

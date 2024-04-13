@@ -1,7 +1,7 @@
+from datetime import datetime, timedelta
+
 from hftcryptoapi.bitmart import Bitmart
 from hftcryptoapi.bitmart.data.constants import *
-from datetime import datetime, timedelta
-import time
 
 if __name__ == '__main__':
     api_key = ""
@@ -22,11 +22,25 @@ if __name__ == '__main__':
     symbols_details = client.get_spot_symbols_details()
     contracts_details = client.get_futures_contracts_details()
     symbol_details = client.get_spot_ticker_details(symbol_spot)
-    kline_steps = client.get_kline_steps() # Not used
-    print(client.get_symbol_kline(symbol="BTC_USDT", tf=TimeFrame.tf_1h, market=Market.SPOT,
-                                  from_time=from_time, to_time=to_time))
-    print(client.get_symbol_kline(symbol=symbol, tf=TimeFrame.tf_1h, market=Market.FUTURES,
-                                  from_time=from_time, to_time=to_time))
+    kline_steps = client.get_kline_steps()  # Not used
+    print(
+        client.get_symbol_kline(
+            symbol="BTC_USDT",
+            tf=TimeFrame.tf_1h,
+            market=Market.SPOT,
+            from_time=from_time,
+            to_time=to_time
+        )
+    )
+    print(
+        client.get_symbol_kline(
+            symbol=symbol,
+            tf=TimeFrame.tf_1h,
+            market=Market.FUTURES,
+            from_time=from_time,
+            to_time=to_time
+        )
+    )
     bt_trades = client.get_symbol_recent_trades(symbol_spot, N=100)
     depth_futures = client.get_symbol_depth(symbol=symbol_spot, precision=6, size=50, market=Market.SPOT)
     depth_spot = client.get_symbol_depth(symbol=symbol, precision=6, size=50, market=Market.FUTURES)
@@ -76,19 +90,38 @@ if __name__ == '__main__':
     client.cancel_order(order)
     order = client.update_order_details(order)
 
-    print(client.submit_order(market=Market.FUTURES, symbol=symbol_eth, order_type=OrderType.MARKET,
-                              side=FuturesSide.SELL_OPEN_SHORT,
-                              size=1, open_type=OrderOpenType.CROSS))
+    print(
+        client.submit_order(
+            market=Market.FUTURES,
+            symbol=symbol_eth,
+            order_type=OrderType.MARKET,
+            side=FuturesSide.SELL_OPEN_SHORT,
+            size=1,
+            open_type=OrderOpenType.CROSS
+        )
+    )
     positions = client.get_futures_position_details(symbol_eth)
     amount = [p for p in positions if p.symbol == "ETHUSDT" and p.current_amount != 0][0].current_amount
 
     print(client.close_futures_position(symbol=symbol_eth, position_side=Position.SHORT, open_type=OrderOpenType.CROSS))
-    print(client.submit_order(market=Market.SPOT, symbol=symbol_spot, order_type=OrderType.MARKET,
-                              side=SpotSide.BUY,
-                              size=10))
-    print(client.submit_order(market=Market.SPOT, symbol=symbol_spot, order_type=OrderType.MARKET,
-                              side=SpotSide.SELL,
-                              size=0.00050000))
+    print(
+        client.submit_order(
+            market=Market.SPOT,
+            symbol=symbol_spot,
+            order_type=OrderType.MARKET,
+            side=SpotSide.BUY,
+            size=10
+        )
+    )
+    print(
+        client.submit_order(
+            market=Market.SPOT,
+            symbol=symbol_spot,
+            order_type=OrderType.MARKET,
+            side=SpotSide.SELL,
+            size=0.00050000
+        )
+    )
     # ------------- MARGIN
     rate = client.spot_margin_borrowing_rate(symbol_spot)
     b_records = client.spot_margin_get_borrow_record(symbol_spot)

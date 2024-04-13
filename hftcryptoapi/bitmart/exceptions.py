@@ -18,6 +18,7 @@ class WebSocketException(Exception):
     def __str__(self):
         return 'WebSocketException: message=%s code=%s' % (self.message, self.code)
 
+
 class AuthException(Exception):
     pass
 

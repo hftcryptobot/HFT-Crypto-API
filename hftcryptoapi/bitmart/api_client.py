@@ -1,6 +1,8 @@
-import requests, json
-from .bm_logging import log
+import json
+import requests
+
 from . import exceptions, bitmart_utils
+from .bm_logging import log
 from .data import constants as c
 
 
@@ -59,8 +61,8 @@ class PyClient(object):
                 r['Remaining'] = res_header['X-BM-RateLimit-Remaining']
                 r['Limit'] = res_header['X-BM-RateLimit-Limit']
                 r['Reset'] = res_header['X-BM-RateLimit-Reset']
-            except:
-                pass
+            except Exception as e:
+                print(f"Error while extracting from headers: {e}")
             return response
 
         except ValueError:

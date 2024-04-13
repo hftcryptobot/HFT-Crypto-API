@@ -1,5 +1,6 @@
 from enum import Enum, EnumMeta, unique
 
+
 @unique
 class ContractErrors(Enum):
     ERROR_40001 = "Cloud account not found"
@@ -49,6 +50,7 @@ class ContractErrors(Enum):
     ERROR_40045 = "The order open type is invalid"
     ERROR_40046 = "The account is not opened futures"
 
+
 @unique
 class AuthenticationErrors(Enum):
     ERROR_30000 = "Not found"
@@ -65,6 +67,7 @@ class AuthenticationErrors(Enum):
     ERROR_30012 = "Header X-BM-KEY is forbidden to request it"
     ERROR_30013 = "Request too many requests"
     ERROR_30014 = "Service unavailable"
+
 
 @unique
 class AccountErrors(Enum):
@@ -96,6 +99,7 @@ class AccountErrors(Enum):
     ERROR_60031 = "Unsupported Media Type"
     ERROR_60050 = "User account not found"
     ERROR_60051 = "Internal Server Error"
+
 
 @unique
 class SpotMarginErrors(Enum):
@@ -195,5 +199,3 @@ class WebsocketErrors(Enum):
     ERROR_92001 = "Invalid symbol param"
     ERROR_94001 = "Request frequency exceeds limit"
     ERROR_95000 = "Internal system error"
-
-
