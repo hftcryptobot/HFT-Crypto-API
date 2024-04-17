@@ -5,9 +5,9 @@ from hftcryptoapi.bitmart import Bitmart
 from hftcryptoapi.bitmart.data.constants import *
 
 if __name__ == '__main__':
-    api_key = "a5b05e327e8077666666ebbf8a2acb028eaebed2"
-    secret_key = "bb0f4c80c70cae5c8dccf468894b2e5feb4703f7de5101284428f15502d31de7"
-    memo = "neirnvwkmvwl"
+    api_key = ""
+    secret_key = ""
+    memo = ""
 
     to_time = datetime.now()
     from_time = to_time - timedelta(days=10)
