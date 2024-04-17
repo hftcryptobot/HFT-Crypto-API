@@ -8,14 +8,23 @@ from time import sleep
 
 class BitmartClient(PyClient):
 
-    def __init__(self, api_key: Optional[str] = None, secret_key: Optional[str] = None, memo: Optional[str] = None,
-                 url: str = API_URL, timeout: tuple = TIMEOUT):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        secret_key: Optional[str] = None,
+        memo: Optional[str] = None,
+        url: str = API_URL,
+        timeout: tuple = TIMEOUT
+    ):
         PyClient.__init__(self, api_key, secret_key, memo, url, timeout)
-        self.ws_public: Dict[Union[Market], BitmartWs] = {Market.SPOT: BitmartWs(WS_URL, Market.SPOT),
-                                                          Market.FUTURES: BitmartWs(CONTRACT_WS_URL, Market.FUTURES)}
+        self.ws_public: Dict[Union[Market], BitmartWs] = {
+            Market.SPOT: BitmartWs(WS_URL, Market.SPOT),
+            Market.FUTURES: BitmartWs(CONTRACT_WS_URL, Market.FUTURES)
+        }
         self.ws_private: Dict[Union[Market], BitmartWs] = {
             Market.SPOT: BitmartWs(WS_URL_USER, Market.SPOT, api_key, memo, secret_key),
-            Market.FUTURES: BitmartWs(CONTRACT_WS_URL_USER, Market.FUTURES, api_key, memo, secret_key)}
+            Market.FUTURES: BitmartWs(CONTRACT_WS_URL_USER, Market.FUTURES, api_key, memo, secret_key)
+        }
 
     def subscribe_private(self, market: Market, channels: List[str], symbols: Optional[List[str]] = None):
         self.ws_private[market].subscribe(channels, symbols)
@@ -38,8 +47,8 @@ class BitmartClient(PyClient):
         self.ws_private[market].stop()
 
     def wait_for_socket_connection(self, market: Market, is_public: bool = True):
-        ws = self.ws_public[market] if is_public else self.ws_private[market]
-        while not ws.is_connected:
+        socket = self.ws_public[market] if is_public else self.ws_private[market]
+        while not socket.is_connected:
             sleep(1)
 
     def get_system_time(self) -> datetime:
@@ -127,10 +136,12 @@ class BitmartClient(PyClient):
             best_bid_size = ticker['best_bid_size']
             fluctuation = ticker['fluctuation']
             timestamp = ticker['timestamp']
-            currency_details = SpotTickerDetails(symbol, last_price, quote_volume_24h, base_volume_24h, high_24h,
-                                                 low_24h, open_24h, close_24h, best_ask, best_ask_size, best_bid,
-                                                 best_bid_size,
-                                                 fluctuation, timestamp)
+            currency_details = SpotTickerDetails(
+                symbol, last_price, quote_volume_24h, base_volume_24h, high_24h,
+                low_24h, open_24h, close_24h, best_ask, best_ask_size, best_bid,
+                best_bid_size,
+                fluctuation, timestamp
+            )
             list_currency_details.append(currency_details)
 
         return list_currency_details
@@ -139,8 +150,14 @@ class BitmartClient(PyClient):
         response = self._request_without_params(GET, SPOT_K_LIE_STEP)
         return json.loads(response.content)['data']['steps']
 
-    def get_symbol_kline(self, symbol: str, from_time: datetime, to_time: datetime, tf: TimeFrame = TimeFrame.tf_1d,
-                         market=Market.SPOT) -> List[Kline]:
+    def get_symbol_kline(
+        self,
+        symbol: str,
+        from_time: datetime,
+        to_time: datetime,
+        tf: TimeFrame = TimeFrame.tf_1d,
+        market=Market.SPOT
+    ) -> List[Kline]:
         klines_data = []
 
         if market == Market.SPOT:
@@ -340,9 +357,11 @@ class BitmartClient(PyClient):
         return self.update_order_details(o)
 
     # GET https://api-cloud.bitmart.com/spot/v3/orders
-    def get_order_history(self, symbol: str, market=Market.SPOT,
-                          start_time: Optional[datetime] = None,
-                          end_time: Optional[datetime] = None) -> List[BitmartOrder]:
+    def get_order_history(
+        self, symbol: str, market=Market.SPOT,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None
+    ) -> List[BitmartOrder]:
 
         orders = []
         if market == Market.SPOT:
@@ -390,11 +409,13 @@ class BitmartClient(PyClient):
         return orders
 
     # Unified methods for trading
-    def submit_order(self, symbol: str, side: Union[FuturesSide, SpotSide],
-                     price: Optional[float] = None, size: Optional[float] = 0, order_type: OrderType = OrderType.LIMIT,
-                     market: Market = Market.SPOT, leverage: Optional[int] = 1,
-                     open_type: OrderOpenType = OrderOpenType.ISOLATED,
-                     client_order_id: Optional[str] = None):
+    def submit_order(
+        self, symbol: str, side: Union[FuturesSide, SpotSide],
+        price: Optional[float] = None, size: Optional[float] = 0, order_type: OrderType = OrderType.LIMIT,
+        market: Market = Market.SPOT, leverage: Optional[int] = 1,
+        open_type: OrderOpenType = OrderOpenType.ISOLATED,
+        client_order_id: Optional[str] = None
+    ):
 
         bm_order = BitmartOrder(symbol, side, size, price, market, order_type, leverage, open_type, client_order_id)
         if market == Market.SPOT:
@@ -470,8 +491,10 @@ class BitmartClient(PyClient):
 
         return bitmart_wallet
 
-    def close_futures_position(self, symbol: str, position_side: Position,
-                               open_type: OrderOpenType = OrderOpenType.CROSS) -> bool:
+    def close_futures_position(
+        self, symbol: str, position_side: Position,
+        open_type: OrderOpenType = OrderOpenType.CROSS
+    ) -> bool:
         is_cross = open_type == OrderOpenType.CROSS
         order_side = FuturesSide.SELL_CLOSE_LONG if position_side == Position.LONG else FuturesSide.BUY_CLOSE_SHORT
         positions = self.get_futures_position_details(symbol)
@@ -486,33 +509,43 @@ class BitmartClient(PyClient):
 
             order_open_type = OrderOpenType.CROSS if is_cross and p.position_cross else OrderOpenType.ISOLATED
 
-            self.submit_order(market=Market.FUTURES, symbol=symbol, order_type=OrderType.MARKET,
-                              side=order_side,
-                              size=size, open_type=order_open_type)
+            self.submit_order(
+                market=Market.FUTURES, symbol=symbol, order_type=OrderType.MARKET,
+                side=order_side,
+                size=size, open_type=order_open_type
+            )
             result = True
 
         return result
 
     def spot_margin_borrow(self, symbol: str, currency: str, amount: float) -> str:
-        response = self._request_with_params(POST, MARGIN_BORROW,
-                                             params=dict(symbol=symbol, currency=currency, amount=amount),
-                                             auth=Auth.SIGNED)
+        response = self._request_with_params(
+            POST, MARGIN_BORROW,
+            params=dict(symbol=symbol, currency=currency, amount=amount),
+            auth=Auth.SIGNED
+        )
         borrow_id = json.loads(response.content)['data']['borrow_id']
 
         return borrow_id
 
-    def spot_margin_repay(self, symbol: str, currency: str, amount: float) -> str:
-        response = self._request_with_params(POST, MARING_REPAY,
-                                             params=dict(symbol=symbol, currency=currency, amount=amount),
-                                             auth=Auth.SIGNED)
+    def spot_margin_repay(
+        self, symbol: str, currency: str, amount: float
+    ) -> str:
+        response = self._request_with_params(
+            POST, MARING_REPAY,
+            params=dict(symbol=symbol, currency=currency, amount=amount),
+            auth=Auth.SIGNED
+        )
         repay_id = json.loads(response.content)['data']['repay_id']
 
         return repay_id
 
-    def spot_margin_get_borrow_record(self, symbol: str, borrow_id: Optional[str] = None,
-                                      start_time: Optional[datetime] = None,
-                                      end_time: Optional[datetime] = None,
-                                      records_count: Optional[int] = None) -> List[BorrowRecord]:
+    def spot_margin_get_borrow_record(
+        self, symbol: str, borrow_id: Optional[str] = None,
+        start_time: Optional[datetime] = None,
+        end_time: Optional[datetime] = None,
+        records_count: Optional[int] = None
+    ) -> List[BorrowRecord]:
 
         params = dict(symbol=symbol)
         if borrow_id is not None:
