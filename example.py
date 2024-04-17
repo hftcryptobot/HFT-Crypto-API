@@ -64,71 +64,71 @@ if __name__ == '__main__':
                                              BtFuturesSocketDepthChannels.DEPTH_CHANNEL_5LEVEL], [symbol])
 
     client.start_websockets(Market.FUTURES, on_message=lambda message: print(f'Message: {message}'))
-    # client.subscribe_public(Market.SPOT, [BtSpotSocketKlineChannels.K_LINE_CHANNEL_1HOUR,
-    #                                       BtSpotSocketDepthChannels.DEPTH_CHANNEL_5LEVEL,
-    #                                       BtSpotTradeChannel,
-    #                                       BtSpotTickerChannel],
-    #                         symbols=[symbol_spot])
-    # client.subscribe_private(Market.SPOT, [BtSpotOrderChannel], symbols=[symbol_spot])
+    client.subscribe_public(Market.SPOT, [BtSpotSocketKlineChannels.K_LINE_CHANNEL_1HOUR,
+                                          BtSpotSocketDepthChannels.DEPTH_CHANNEL_5LEVEL,
+                                          BtSpotTradeChannel,
+                                          BtSpotTickerChannel],
+                            symbols=[symbol_spot])
+    client.subscribe_private(Market.SPOT, [BtSpotOrderChannel], symbols=[symbol_spot])
 
-    # client.start_websockets(Market.SPOT, on_message=lambda message: print(f' {message}'))
-    # client.wait_for_socket_connection(market=Market.FUTURES)
-    # client.wait_for_socket_connection(market=Market.SPOT, is_public=False)
-    # input("Press any key")
-    # client.unsubscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
-    # client.unsubscribe_private(Market.FUTURES, [BtFuturesSocketDepthChannels], [symbol])
-    # client.stop_websockets(Market.FUTURES)
-    # client.stop_websockets(Market.SPOT)
-    # # ------------- ORDER
-    # order = client.submit_order(market=Market.SPOT_MARGIN, symbol="BTC_USDT", side=SpotSide.BUY, size=0.005, price=1000)
-    # order = client.submit_order(market=Market.SPOT_MARGIN, order_type=OrderType.MARKET,
-    #                             symbol="BTC_USDT", side=SpotSide.BUY, size=6, price=1000)
-    # order = client.submit_order(market=Market.SPOT_MARGIN, order_type=OrderType.MARKET,
-    #                             symbol="BTC_USDT", side=SpotSide.SELL, size=6, price=1000)
-    # order = client.update_order_details(order)
-    # client.cancel_order(order)
-    # order = client.submit_order(market=Market.FUTURES, symbol="ETHUSDT", side=FuturesSide.BUY_OPEN_LONG,
-    #                             size=1, price=70, open_type=OrderOpenType.CROSS)
-    # client.update_order_details(order)
-    #
-    # client.cancel_order(order)
-    # order = client.update_order_details(order)
-    #
-    # print(
-    #     client.submit_order(
-    #         market=Market.FUTURES,
-    #         symbol=symbol_eth,
-    #         order_type=OrderType.MARKET,
-    #         side=FuturesSide.SELL_OPEN_SHORT,
-    #         size=1,
-    #         open_type=OrderOpenType.CROSS
-    #     )
-    # )
-    # positions = client.get_futures_position_details(symbol_eth)
-    # amount = [p for p in positions if p.symbol == "ETHUSDT" and p.current_amount != 0][0].current_amount
-    #
-    # print(client.close_futures_position(symbol=symbol_eth, position_side=Position.SHORT, open_type=OrderOpenType.CROSS))
-    # print(
-    #     client.submit_order(
-    #         market=Market.SPOT,
-    #         symbol=symbol_spot,
-    #         order_type=OrderType.MARKET,
-    #         side=SpotSide.BUY,
-    #         size=10
-    #     )
-    # )
-    # print(
-    #     client.submit_order(
-    #         market=Market.SPOT,
-    #         symbol=symbol_spot,
-    #         order_type=OrderType.MARKET,
-    #         side=SpotSide.SELL,
-    #         size=0.00050000
-    #     )
-    # )
-    # # ------------- MARGIN
-    # rate = client.spot_margin_borrowing_rate(symbol_spot)
-    # b_records = client.spot_margin_get_borrow_record(symbol_spot)
-    # r_records = client.spot_margin_get_repay_record(symbol_spot)
-    # client.spot_margin_borrow(symbol_spot, "BTC", 0.005)
-    # client.spot_margin_repay(symbol_spot, "BTC", 0.005)
+    client.start_websockets(Market.SPOT, on_message=lambda message: print(f' {message}'))
+    client.wait_for_socket_connection(market=Market.FUTURES)
+    client.wait_for_socket_connection(market=Market.SPOT, is_public=False)
+    input("Press any key")
+    client.unsubscribe_private(Market.FUTURES, [BtFuturesTPrivatePositionChannel])
+    client.unsubscribe_private(Market.FUTURES, [BtFuturesSocketDepthChannels], [symbol])
+    client.stop_websockets(Market.FUTURES)
+    client.stop_websockets(Market.SPOT)
+    # ------------- ORDER
+    order = client.submit_order(market=Market.SPOT_MARGIN, symbol="BTC_USDT", side=SpotSide.BUY, size=0.005, price=1000)
+    order = client.submit_order(market=Market.SPOT_MARGIN, order_type=OrderType.MARKET,
+                                symbol="BTC_USDT", side=SpotSide.BUY, size=6, price=1000)
+    order = client.submit_order(market=Market.SPOT_MARGIN, order_type=OrderType.MARKET,
+                                symbol="BTC_USDT", side=SpotSide.SELL, size=6, price=1000)
+    order = client.update_order_details(order)
+    client.cancel_order(order)
+    order = client.submit_order(market=Market.FUTURES, symbol="ETHUSDT", side=FuturesSide.BUY_OPEN_LONG,
+                                size=1, price=70, open_type=OrderOpenType.CROSS)
+    client.update_order_details(order)
+
+    client.cancel_order(order)
+    order = client.update_order_details(order)
+
+    print(
+        client.submit_order(
+            market=Market.FUTURES,
+            symbol=symbol_eth,
+            order_type=OrderType.MARKET,
+            side=FuturesSide.SELL_OPEN_SHORT,
+            size=1,
+            open_type=OrderOpenType.CROSS
+        )
+    )
+    positions = client.get_futures_position_details(symbol_eth)
+    amount = [p for p in positions if p.symbol == "ETHUSDT" and p.current_amount != 0][0].current_amount
+
+    print(client.close_futures_position(symbol=symbol_eth, position_side=Position.SHORT, open_type=OrderOpenType.CROSS))
+    print(
+        client.submit_order(
+            market=Market.SPOT,
+            symbol=symbol_spot,
+            order_type=OrderType.MARKET,
+            side=SpotSide.BUY,
+            size=10
+        )
+    )
+    print(
+        client.submit_order(
+            market=Market.SPOT,
+            symbol=symbol_spot,
+            order_type=OrderType.MARKET,
+            side=SpotSide.SELL,
+            size=0.00050000
+        )
+    )
+    # ------------- MARGIN
+    rate = client.spot_margin_borrowing_rate(symbol_spot)
+    b_records = client.spot_margin_get_borrow_record(symbol_spot)
+    r_records = client.spot_margin_get_repay_record(symbol_spot)
+    client.spot_margin_borrow(symbol_spot, "BTC", 0.005)
+    client.spot_margin_repay(symbol_spot, "BTC", 0.005)
