@@ -16,19 +16,19 @@ class MetaEnum(EnumMeta):
 
 """ Base urls for API endpoints """
 # Domain constants
-API_URL = 'https://api-cloud.bitmart.com'
-WS_URL = 'wss://ws-manager-compress.bitmart.com/api?protocol=1.1'
-WS_URL_USER = 'wss://ws-manager-compress.bitmart.com/user?protocol=1.1'
-CONTRACT_WS_URL = 'wss://openapi-ws.bitmart.com/api?protocol=1.1'
-CONTRACT_WS_URL_USER = 'wss://openapi-ws.bitmart.com/user?protocol=1.1'
+API_URL = "https://api-cloud.bitmart.com"
+WS_URL = "wss://ws-manager-compress.bitmart.com/api?protocol=1.1"
+WS_URL_USER = "wss://ws-manager-compress.bitmart.com/user?protocol=1.1"
+CONTRACT_WS_URL = "wss://openapi-ws.bitmart.com/api?protocol=1.1"
+CONTRACT_WS_URL_USER = "wss://openapi-ws.bitmart.com/user?protocol=1.1"
 
 # http headers
-CONTENT_TYPE = 'Content-Type'
-USER_AGENT = 'User-Agent'
-X_BM_KEY = 'X-BM-KEY'
-X_BM_SIGN = 'X-BM-SIGN'
-X_BM_TIMESTAMP = 'X-BM-TIMESTAMP'
-APPLICATION_JSON = 'application/json'
+CONTENT_TYPE = "Content-Type"
+USER_AGENT = "User-Agent"
+X_BM_KEY = "X-BM-KEY"
+X_BM_SIGN = "X-BM-SIGN"
+X_BM_TIMESTAMP = "X-BM-TIMESTAMP"
+APPLICATION_JSON = "application/json"
 GET = "GET"
 POST = "POST"
 DELETE = "DELETE"
@@ -243,6 +243,7 @@ class FuturesContractType(int, Enum):
 @unique
 class BtWebSocket(str, Enum):
     """Base urls for websocket endpoints"""
+
     PUBLIC = "wss://ws-manager-compress.bitmart.com/api?protocol=1.1"
     PRIVATE = "wss://ws-manager-compress.bitmart.com/user?protocol=1.1"
 
@@ -250,6 +251,7 @@ class BtWebSocket(str, Enum):
 @unique
 class BtSocketOperation(str, Enum, metaclass=MetaEnum):
     """Base operation data for Bitmart websockets"""
+
     SUBSCRIBE = "subscribe"
     UNSUBSCRIBE = "unsubscribe"
     LOGIN = "login"
@@ -258,6 +260,7 @@ class BtSocketOperation(str, Enum, metaclass=MetaEnum):
 @unique
 class BtSpotSocketKlineChannels(str, Enum):
     """Base websocket channels for Bitmart Spot Klines"""
+
     K_LINE_CHANNEL_1MIN = "spot/kline1m"
     K_LINE_CHANNEL_3MIN = "spot/kline3m"
     K_LINE_CHANNEL_5MIN = "spot/kline5m"

@@ -6,17 +6,21 @@ class APIException(Exception):
         self.url = response.url
 
     def __str__(self):
-        return 'APIException(http status=%s): response=%s url=%s' % (self.status_code, self.response, self.url)
+        return "APIException(http status=%s): response=%s url=%s" % (
+            self.status_code,
+            self.response,
+            self.url,
+        )
 
 
 class WebSocketException(Exception):
     def __init__(self, error_response):
-        self.message = error_response.get('errorMessage', "")
-        self.code = error_response.get('errorCode', "")
+        self.message = error_response.get("errorMessage", "")
+        self.code = error_response.get("errorCode", "")
         self.error_response = error_response
 
     def __str__(self):
-        return 'WebSocketException: message=%s code=%s' % (self.message, self.code)
+        return "WebSocketException: message=%s code=%s" % (self.message, self.code)
 
 
 class AuthException(Exception):
@@ -29,7 +33,7 @@ class RequestException(Exception):
         self.message = message
 
     def __str__(self):
-        return 'RequestException: %s' % self.message
+        return "RequestException: %s" % self.message
 
 
 class ParamsException(Exception):
@@ -38,4 +42,4 @@ class ParamsException(Exception):
         self.message = message
 
     def __str__(self):
-        return 'ParamsException: %s' % self.message
+        return "ParamsException: %s" % self.message

@@ -1,9 +1,12 @@
-from hftcryptoapi.bitmart.data.constants import *
 from datetime import datetime
+
+from hftcryptoapi.bitmart.data.constants import *
 
 
 class WebSocketTickerSpot(object):
-    def __init__(self, symbol, last_price, base_volume_24h, high_24h, low_24h, open_24h, s_t):
+    def __init__(
+        self, symbol, last_price, base_volume_24h, high_24h, low_24h, open_24h, s_t
+    ):
         self.base_volume_24h = float(base_volume_24h)
         self.high_24h = float(high_24h)
         self.last_price = float(last_price)
@@ -83,10 +86,28 @@ class WebSocketLogin:
 
 
 class WebSocketOrderProgress:
-    def __init__(self, symbol, order_id, price, size, notional, side, order_type, ms_t, filled_size, filled_notional,
-                 margin_trading,
-                 trade_order_type, state, last_fill_price, last_fill_count, last_fill_time, exec_type, detail_id,
-                 client_order_id):
+    def __init__(
+        self,
+        symbol,
+        order_id,
+        price,
+        size,
+        notional,
+        side,
+        order_type,
+        ms_t,
+        filled_size,
+        filled_notional,
+        margin_trading,
+        trade_order_type,
+        state,
+        last_fill_price,
+        last_fill_count,
+        last_fill_time,
+        exec_type,
+        detail_id,
+        client_order_id,
+    ):
         self.symbol = symbol
         self.order_id = order_id
         self.price = float(price)
@@ -117,12 +138,27 @@ class WebSocketAssetFutures(object):
 
 
 class WebSocketPositionFutures(object):
-    def __init__(self, symbol, hold_volume, position_type, open_type, frozen_volume, close_volume, hold_avg_price,
-                 close_avg_price, open_avg_price, liquidate_price, create_time, update_time):
+    def __init__(
+        self,
+        symbol,
+        hold_volume,
+        position_type,
+        open_type,
+        frozen_volume,
+        close_volume,
+        hold_avg_price,
+        close_avg_price,
+        open_avg_price,
+        liquidate_price,
+        create_time,
+        update_time,
+    ):
         self.ticker = symbol
         self.hold_volume = int(hold_volume)
         self.position_type = Position(position_type)
-        self.open_type = OrderOpenType.ISOLATED if open_type == 1 else OrderOpenType.CROSS
+        self.open_type = (
+            OrderOpenType.ISOLATED if open_type == 1 else OrderOpenType.CROSS
+        )
         self.frozen_volume = int(frozen_volume)
         self.close_volume = int(close_volume)
         self.hold_avg_price = float(hold_avg_price)

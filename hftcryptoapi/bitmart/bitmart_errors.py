@@ -1,4 +1,4 @@
-from enum import Enum, EnumMeta, unique
+from enum import Enum, unique
 
 
 @unique
@@ -15,11 +15,15 @@ class ContractErrors(Enum):
     ERROR_40010 = "Not found func error"
     ERROR_40011 = "Invalid request"
     ERROR_40012 = "System error"
-    ERROR_40013 = "Access too often: CLIENT_TIME_INVALID. Please check your system time."
+    ERROR_40013 = (
+        "Access too often: CLIENT_TIME_INVALID. Please check your system time."
+    )
     ERROR_40014 = "This contract is offline"
     ERROR_40015 = "This contract's exchange has been paused"
     ERROR_40016 = "This order would trigger user position liquidate"
-    ERROR_40017 = "It is not possible to open and close simultaneously in the same position"
+    ERROR_40017 = (
+        "It is not possible to open and close simultaneously in the same position"
+    )
     ERROR_40018 = "Your position is closed"
     ERROR_40019 = "Your position is in liquidation delegating"
     ERROR_40020 = "Your position volume is not enough"
@@ -91,7 +95,9 @@ class AccountErrors(Enum):
     ERROR_60022 = "No withdrawals for 24 hours"
     ERROR_60026 = "Sub-account does not have permission to operate"
     ERROR_60027 = "Only supports sub-account calls"
-    ERROR_60028 = "Account is disabled for security reasons, please contact customer service"
+    ERROR_60028 = (
+        "Account is disabled for security reasons, please contact customer service"
+    )
     ERROR_60029 = "The account is frozen by the master account, please contact the master account to unfreeze the account"
     ERROR_61005 = "Asset transfer between accounts is not available"
     ERROR_61006 = "The sub-account api only supports organization accounts"
@@ -136,7 +142,9 @@ class SpotMarginErrors(Enum):
     ERROR_50030 = "Order is already canceled"
     ERROR_50031 = "Order is already completed"
     ERROR_50032 = "Order does not exist"
-    ERROR_50033 = "The order quantity should be greater than 0 and less than or equal to 10"
+    ERROR_50033 = (
+        "The order quantity should be greater than 0 and less than or equal to 10"
+    )
     ERROR_50034 = "The price is high and there is no matching depth"
     ERROR_50035 = "The price is low and there is no matching depth"
     ERROR_50036 = "Cancel failed, order is not revocable status"
@@ -158,8 +166,12 @@ class SpotMarginErrors(Enum):
     ERROR_51010 = "Parameter mismatch: limit order price should be greater than the minimum buy price"
     ERROR_51011 = "Parameter mismatch: Limit order quantity * price should be greater than the minimum transaction amount"
     ERROR_51012 = "Participation mismatch: the number of market order buy orders should be greater than the minimum buyable amount"
-    ERROR_51013 = "Parameter mismatch: the price of market order buy order placed is too small"
-    ERROR_51014 = "Parameter mismatch: the amount of market order sell orders placed is too small"
+    ERROR_51013 = (
+        "Parameter mismatch: the price of market order buy order placed is too small"
+    )
+    ERROR_51014 = (
+        "Parameter mismatch: the amount of market order sell orders placed is too small"
+    )
     ERROR_51015 = "Quantity is too small"
     ERROR_53000 = "Your account is frozen due to security policies. Please contact customer service"
     ERROR_53001 = "Your kyc country is restricted. Please contact customer service."

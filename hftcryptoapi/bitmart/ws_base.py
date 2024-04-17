@@ -1,17 +1,20 @@
-import websockets
-from .bitmart_utils import sign, get_timestamp, get_kline_time
-import threading
 import asyncio
-from hftcryptoapi.bitmart.data import *
 import logging
-from typing import List, Optional
+import threading
+
+import websockets
+
+from hftcryptoapi.bitmart.data import *
+from .bitmart_utils import sign, get_timestamp, get_kline_time
 
 
 # logging.getLogger().setLevel(logging.INFO)
 
 
 class BitmartWs(object):
-    def __init__(self, uri: str, market: Market, api_key=None, memo=None, secret_key=None):
+    def __init__(
+        self, uri: str, market: Market, api_key=None, memo=None, secret_key=None
+    ):
         self.uri = uri
         self.ws: websockets.WebSocketClientProtocol = None
         self.loop = asyncio.new_event_loop()
@@ -26,18 +29,24 @@ class BitmartWs(object):
         self.is_stop = False
         self.name_of_group = "group" if market == market.FUTURES else "table"
 
-    def _get_subscription_list(self, channels: List[str], symbols: Optional[List[str]] = None):
+    def _get_subscription_list(
+        self, channels: List[str], symbols: Optional[List[str]] = None
+    ):
         params = []
         if symbols is None:
             params += channels
         else:
             for c in channels:
                 for s in symbols:
-                    params.append(f'{c}:{s}')
+                    params.append(f"{c}:{s}")
         return params
 
-    def _mange_socket_subscriptions(self, channels: List[str], symbols: Optional[List[str]] = None,
-                                    subscribe: bool = True):
+    def _mange_socket_subscriptions(
+        self,
+        channels: List[str],
+        symbols: Optional[List[str]] = None,
+        subscribe: bool = True,
+    ):
         params = self._get_subscription_list(channels, symbols)
         self.params += params
         if self.is_connected:
@@ -97,16 +106,24 @@ class BitmartWs(object):
                             self.on_message(ticker)
                 elif "spot/kline" in group:
                     for item in data:
-                        kline = WebSocketKline(symbol=item["symbol"], candle=list(item['candle']),
-                                               market=self.market)
+                        kline = WebSocketKline(
+                            symbol=item["symbol"],
+                            candle=list(item["candle"]),
+                            market=self.market,
+                        )
                         self.on_message(kline)
                 elif "futures/kline" in group:
-                    items = data['items']
+                    items = data["items"]
                     for item in items:
-                        kline = WebSocketKline(symbol=data["symbol"], candle=list(item.values()),
-                                               market=self.market)
+                        kline = WebSocketKline(
+                            symbol=data["symbol"],
+                            candle=list(item.values()),
+                            market=self.market,
+                        )
                         if self.market == Market.FUTURES:
-                            kline.date_time = get_kline_time(BtFuturesSocketKlineChannels(group.split(":")[0]))
+                            kline.date_time = get_kline_time(
+                                BtFuturesSocketKlineChannels(group.split(":")[0])
+                            )
                         self.on_message(kline)
                 elif "/position" in group:
                     for item in data:
@@ -136,7 +153,9 @@ class BitmartWs(object):
                     logging.warning(f"WS {self.market} Closing")
                     await self.ws.close()
                 logging.info(f"WS {self.market} Connecting")
-                self.ws = await websockets.connect(self.uri, ping_interval=10, ping_timeout=10)
+                self.ws = await websockets.connect(
+                    self.uri, ping_interval=10, ping_timeout=10
+                )
                 self.is_connected = True
                 logging.info(f"WS {self.market} Connected")
                 break
@@ -157,16 +176,20 @@ class BitmartWs(object):
                     logging.info(f"WS read error {e}")
         except websockets.ConnectionClosedError as e:
             sleep_time = 3
-            logging.warning(f"WS {self.market} Connection Error: {e}. Sleep {sleep_time}...")
+            logging.warning(
+                f"WS {self.market} Connection Error: {e}. Sleep {sleep_time}..."
+            )
             await asyncio.sleep(sleep_time)
         except Exception as e:
             if not self.is_stop:
-                logging.warning(f"WS {self.market} Connection Lost at {datetime.utcnow()} {e}")
+                logging.warning(
+                    f"WS {self.market} Connection Lost at {datetime.utcnow()} {e}"
+                )
 
     async def _auth(self):
         if self.api_key is not None:
             timestamp = get_timestamp()
-            sign_ = sign(f'{timestamp}#{self.memo}#bitmart.WebSocket', self.secret_key)
+            sign_ = sign(f"{timestamp}#{self.memo}#bitmart.WebSocket", self.secret_key)
             params = {"args": [self.api_key, timestamp, sign_]}
             if self.market is Market.FUTURES:
                 params["action"] = "access"
