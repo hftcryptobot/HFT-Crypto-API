@@ -256,6 +256,7 @@ class SpotTickerDetails(object):
         self.date_time = datetime.fromtimestamp(timestamp / 1000)
         self.funding_rate = None
         self.funding_rate_datetime = None
+        self.url = url
 
     def __str__(self):
         return f"{self.symbol}: {self.last_price} ({self.base_volume_24h})"
@@ -270,10 +271,23 @@ class FuturesOpenInterest(object):
 
 
 class FuturesFundingRate(object):
-    def __init__(self, timestamp, symbol, rate_value):
+    def __init__(
+        self,
+        timestamp,
+        symbol,
+        rate_value,
+        expected_rate,
+        funding_time,
+        funding_upper_limit,
+        funding_lower_limit
+    ):
         self.symbol = symbol
         self.timestamp = datetime.fromtimestamp(timestamp / 1000)
         self.rate_value = float(rate_value)
+        self.expected_rate = expected_rate
+        self.funding_time = funding_time
+        self.funding_upper_limit = funding_upper_limit
+        self.funding_lower_limit = funding_lower_limit
 
 
 class TickerFuturesWebSocket(object):
@@ -362,7 +376,8 @@ class BitmartFutureContract(object):
                  max_volume, min_volume,
                  contract_size, index_price, index_name, min_leverage, max_leverage, turnover_24h,
                  volume_24h, last_price,
-                 open_timestamp, expire_timestamp, settle_timestamp):
+                 open_timestamp, expire_timestamp, settle_timestamp,
+                 funding_rate, expected_funding_rate, open_interest, open_interest_value):
         self.symbol = symbol
         self.product_type = FuturesContractType.PERPETUAL if int(product_type) == 1 else FuturesContractType.FUTURES
         self.base_currency = base_currency
@@ -382,6 +397,10 @@ class BitmartFutureContract(object):
         self.open_date_time = datetime.fromtimestamp(open_timestamp / 1000)
         self.expire_date_time = datetime.fromtimestamp(expire_timestamp / 1000)
         self.settle_date_time = datetime.fromtimestamp(settle_timestamp / 1000)
+        self.funding_rate = funding_rate
+        self.expected_funding_rate = expected_funding_rate
+        self.open_interest = open_interest
+        self.open_interest_value = open_interest_value
 
 
 class BitmartSpotSymbolDetails(object):

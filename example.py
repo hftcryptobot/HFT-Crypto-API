@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from time import sleep
 
 from hftcryptoapi.bitmart import Bitmart
 from hftcryptoapi.bitmart.data.constants import *
@@ -23,24 +24,27 @@ if __name__ == '__main__':
     contracts_details = client.get_futures_contracts_details()
     symbol_details = client.get_spot_ticker_details(symbol_spot)
     kline_steps = client.get_kline_steps()  # Not used
-    print(
-        client.get_symbol_kline(
-            symbol="BTC_USDT",
-            tf=TimeFrame.tf_1h,
-            market=Market.SPOT,
-            from_time=from_time,
-            to_time=to_time
-        )
+
+    btc_usdt_klines = client.get_symbol_kline(
+        symbol="BTC_USDT",
+        tf=TimeFrame.tf_1h,
+        market=Market.SPOT,
+        from_time=from_time,
+        to_time=to_time
     )
-    print(
-        client.get_symbol_kline(
-            symbol=symbol,
-            tf=TimeFrame.tf_1h,
-            market=Market.FUTURES,
-            from_time=from_time,
-            to_time=to_time
-        )
+    for kline in btc_usdt_klines:
+        print(str(kline))
+
+    symbol_klines = client.get_symbol_kline(
+        symbol=symbol,
+        tf=TimeFrame.tf_1h,
+        market=Market.FUTURES,
+        from_time=from_time,
+        to_time=to_time
     )
+    for kline in symbol_klines:
+        print(str(kline))
+
     bt_trades = client.get_symbol_recent_trades(symbol_spot, N=100)
     depth_futures = client.get_symbol_depth(symbol=symbol_spot, precision=6, size=50, market=Market.SPOT)
     depth_spot = client.get_symbol_depth(symbol=symbol, precision=6, size=50, market=Market.FUTURES)
@@ -59,7 +63,7 @@ if __name__ == '__main__':
     client.subscribe_public(Market.FUTURES, [BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR,
                                              BtFuturesSocketDepthChannels.DEPTH_CHANNEL_5LEVEL], [symbol])
 
-    client.start_websockets(Market.FUTURES, on_message=lambda message: print(f' {message}'))
+    client.start_websockets(Market.FUTURES, on_message=lambda message: print(f'Message: {message}'))
     client.subscribe_public(Market.SPOT, [BtSpotSocketKlineChannels.K_LINE_CHANNEL_1HOUR,
                                           BtSpotSocketDepthChannels.DEPTH_CHANNEL_5LEVEL,
                                           BtSpotTradeChannel,
