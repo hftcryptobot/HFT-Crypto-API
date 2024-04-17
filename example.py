@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta
+from time import sleep
 
 from hftcryptoapi.bitmart import Bitmart
 from hftcryptoapi.bitmart.data.constants import *
