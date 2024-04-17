@@ -1,11 +1,18 @@
+from datetime import timedelta
+
 import pandas as pd
+
+from bot_utils import (
+    to_dataframe,
+    get_indicators,
+    should_buy,
+    should_sell,
+    get_profit,
+    BB_WINDOW,
+)
+from config import *
 from hftcryptoapi import BitmartClient
 from hftcryptoapi.bitmart.data import *
-from datetime import datetime, timedelta
-from typing import Optional, Union
-
-from bot_utils import to_dataframe, get_indicators, should_buy, should_sell, get_profit, BB_WINDOW
-from config import *
 
 
 class TradingBot(object):
@@ -20,33 +27,63 @@ class TradingBot(object):
     def preload(self):
         to_time = datetime.now()
         from_time = to_time - timedelta(hours=BB_WINDOW + 1)
-        klines = self.client.get_symbol_kline(symbol=self.symbol, market=Market.FUTURES, tf=TimeFrame.tf_1h,
-                                              from_time=from_time, to_time=to_time)
+        klines = self.client.get_symbol_kline(
+            symbol=self.symbol,
+            market=Market.FUTURES,
+            tf=TimeFrame.tf_1h,
+            from_time=from_time,
+            to_time=to_time,
+        )
 
         self.candles = get_indicators(to_dataframe(klines))
 
     def start(self):
         print("Starting bot...")
         self.preload()
-        self.client.subscribe_public(market=Market.FUTURES, symbols=[self.symbol],
-                                     channels=[BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR])
-        self.client.subscribe_private(market=Market.FUTURES, channels=[BtFuturesTPrivatePositionChannel])
+        self.client.subscribe_public(
+            market=Market.FUTURES,
+            symbols=[self.symbol],
+            channels=[BtFuturesSocketKlineChannels.K_LINE_CHANNEL_1HOUR],
+        )
+        self.client.subscribe_private(
+            market=Market.FUTURES, channels=[BtFuturesTPrivatePositionChannel]
+        )
 
         self.client.start_websockets(market=Market.FUTURES, on_message=self._on_message)
 
     def open(self, side: Position):
         print(f"Open position {side}")
-        order_side = FuturesSide.BUY_OPEN_LONG if side == Position.LONG else FuturesSide.SELL_OPEN_SHORT
-        self.client.submit_order(symbol=self.symbol, market=Market.FUTURES, order_type=OrderType.MARKET,
-                                 size=self.contract_size, open_type=OrderOpenType.CROSS, side=order_side)
+        order_side = (
+            FuturesSide.BUY_OPEN_LONG
+            if side == Position.LONG
+            else FuturesSide.SELL_OPEN_SHORT
+        )
+        self.client.submit_order(
+            symbol=self.symbol,
+            market=Market.FUTURES,
+            order_type=OrderType.MARKET,
+            size=self.contract_size,
+            open_type=OrderOpenType.CROSS,
+            side=order_side,
+        )
 
         self.position_side = side
 
     def close(self):
         print(f"Close position {self.position_side}")
-        order_side = FuturesSide.SELL_CLOSE_LONG if self.position_side == Position.LONG else FuturesSide.BUY_CLOSE_SHORT
-        self.client.submit_order(symbol=self.symbol, market=Market.FUTURES, order_type=OrderType.MARKET,
-                                 size=self.contract_size, open_type=OrderOpenType.CROSS, side=order_side)
+        order_side = (
+            FuturesSide.SELL_CLOSE_LONG
+            if self.position_side == Position.LONG
+            else FuturesSide.BUY_CLOSE_SHORT
+        )
+        self.client.submit_order(
+            symbol=self.symbol,
+            market=Market.FUTURES,
+            order_type=OrderType.MARKET,
+            size=self.contract_size,
+            open_type=OrderOpenType.CROSS,
+            side=order_side,
+        )
 
         self.position_side = None
 
@@ -73,7 +110,9 @@ class TradingBot(object):
         else:
             print(f"Position {msg.open_avg_price} [{msg.volume}]")
             if msg.volume == 0:
-                profit = get_profit(msg.position_type, msg.open_avg_price, msg.close_avg_price)
+                profit = get_profit(
+                    msg.position_type, msg.open_avg_price, msg.close_avg_price
+                )
                 print("POSITION CLOSED: %.3f" % profit)
                 self.profit += profit
 

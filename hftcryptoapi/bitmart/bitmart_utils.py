@@ -1,15 +1,21 @@
-import hmac, datetime
+import datetime
+import hmac
+
 from .data import constants as c
 
 
 def sign(message, secret_key):
-    mac = hmac.new(bytes(secret_key, encoding='utf8'), bytes(message, encoding='utf-8'), digestmod='sha256')
+    mac = hmac.new(
+        bytes(secret_key, encoding="utf8"),
+        bytes(message, encoding="utf-8"),
+        digestmod="sha256",
+    )
     return mac.hexdigest()
 
 
 # timestamp + "#" + memo + "#" + queryString
 def pre_substring(timestamp, memo, body):
-    return f'{str(timestamp)}#{memo}#{body}'
+    return f"{str(timestamp)}#{memo}#{body}"
 
 
 def get_header(api_key, sign, timestamp):
@@ -28,9 +34,9 @@ def get_header(api_key, sign, timestamp):
 
 
 def parse_params_to_str(params):
-    url = '?'
+    url = "?"
     for key, value in params.items():
-        url = url + str(key) + '=' + str(value) + '&'
+        url = url + str(key) + "=" + str(value) + "&"
 
     return url[0:-1]
 
@@ -47,8 +53,15 @@ def round_time(dt=None, round_to=60):
 
 def get_kline_time(kline_type: c.BtFuturesSocketKlineChannels):
     items = kline_type.name.split("_")
-    tf_name = items[-1].lower().replace("min", "m").replace("day", "d").replace("week", "w"). \
-        replace("hours", "h").replace("hour", "h")
+    tf_name = (
+        items[-1]
+        .lower()
+        .replace("min", "m")
+        .replace("day", "d")
+        .replace("week", "w")
+        .replace("hours", "h")
+        .replace("hour", "h")
+    )
     now_ = datetime.datetime.now()
     now_ = now_.replace(second=0, microsecond=0)
     tf_val = int(tf_name[:-1])

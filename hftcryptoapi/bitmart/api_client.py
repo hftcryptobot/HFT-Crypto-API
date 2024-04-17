@@ -1,4 +1,5 @@
 import json
+
 import requests
 
 from . import exceptions, bitmart_utils
@@ -39,7 +40,10 @@ class PyClient(object):
             header = bitmart_utils.get_header(self.API_KEY, sign=None, timestamp=None)
         else:
             timestamp = bitmart_utils.get_timestamp()
-            sign = bitmart_utils.sign(bitmart_utils.pre_substring(timestamp, self.MEMO, str(body)), self.SECRET_KEY)
+            sign = bitmart_utils.sign(
+                bitmart_utils.pre_substring(timestamp, self.MEMO, str(body)),
+                self.SECRET_KEY,
+            )
             header = bitmart_utils.get_header(self.API_KEY, sign, timestamp)
 
         # send request
@@ -47,26 +51,28 @@ class PyClient(object):
         if method == c.GET:
             response = requests.get(url, headers=header, timeout=self.TIMEOUT)
         elif method == c.POST:
-            response = requests.post(url, data=body, headers=header, timeout=self.TIMEOUT)
+            response = requests.post(
+                url, data=body, headers=header, timeout=self.TIMEOUT
+            )
         elif method == c.DELETE:
             response = requests.delete(url, headers=header, timeout=self.TIMEOUT)
 
         # exception handle
-        if not str(response.status_code) == '200':
+        if not str(response.status_code) == "200":
             raise exceptions.APIException(response)
         try:
             res_header = response.headers
             r = dict()
             try:
-                r['Remaining'] = res_header['X-BM-RateLimit-Remaining']
-                r['Limit'] = res_header['X-BM-RateLimit-Limit']
-                r['Reset'] = res_header['X-BM-RateLimit-Reset']
+                r["Remaining"] = res_header["X-BM-RateLimit-Remaining"]
+                r["Limit"] = res_header["X-BM-RateLimit-Limit"]
+                r["Reset"] = res_header["X-BM-RateLimit-Reset"]
             except Exception as e:
                 print(f"Error while extracting from headers: {e}")
             return response
 
         except ValueError:
-            raise exceptions.RequestException('Invalid Response: %s' % response.text)
+            raise exceptions.RequestException("Invalid Response: %s" % response.text)
 
     def _request_without_params(self, method, request_path, auth=c.Auth.NONE):
         return self._request(method, request_path, {}, auth)
